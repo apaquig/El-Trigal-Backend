@@ -530,6 +530,11 @@ export class AdminProductQueryDto extends AdminListQueryDto {
   @MinLength(2)
   @MaxLength(80)
   search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  mainCategoryId?: string;
 }
 
 export class GenerateSeoDto {

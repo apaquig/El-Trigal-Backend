@@ -528,6 +528,10 @@ export class ProductService implements OnModuleInit {
       filter.categoryIds = { $in: categoryIds };
     }
 
+    if (query.mainCategoryId) {
+      filter.categoryIds = new Types.ObjectId(query.mainCategoryId);
+    }
+
     const [items, totalItems] = await Promise.all([
       this.productModel
         .find(filter)
