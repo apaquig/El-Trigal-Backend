@@ -848,21 +848,21 @@ export class ProductService implements OnModuleInit {
       };
 
       return {
-        categoryId: cat._id.toString(),
-        categoryName: getVal(cat.name),
-        categorySlug: getVal(cat.slug),
-        categoryOrigin: cat.origin || {},
+        categoriaId: cat._id.toString(),
+        categoriaName: getVal(cat.name),
+        categoriaSlug: getVal(cat.slug),
+        categoriaOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
-        products: catProducts.map((prod) => {
+        productos: catProducts.map((prod) => {
           return {
-            productId: (prod as any)._id.toString(),
-            productName: getVal(prod.name),
-            productSlug: getVal(prod.slug),
-            productDescription: getVal(prod.description),
-            productPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
-            productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
-            productIngredients: getVal(prod.ingredients),
-            productAllergens: (() => {
+            productoId: (prod as any)._id.toString(),
+            productoName: getVal(prod.name),
+            productoSlug: getVal(prod.slug),
+            productoDescription: getVal(prod.description),
+            productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+            productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
+            productoIngredients: getVal(prod.ingredients),
+            productoAllergens: (() => {
               const allergensMap: Record<string, string> = {
                 'gluten': 'Gluten',
                 'lactosa': 'Lactose',
@@ -878,7 +878,7 @@ export class ProductService implements OnModuleInit {
               }
               return rawAllergens;
             })(),
-            productSeo: (() => {
+            productoSeo: (() => {
               const seoObj = prod.seo || {};
               const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
               return {
