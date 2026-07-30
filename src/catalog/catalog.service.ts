@@ -76,18 +76,29 @@ export class CategoryService {
     return category;
   }
 
-  async listPublicWithProducts(type?: 'local' | 'imported') {
-    const categoryFilter: Record<string, unknown> = { status: { $ne: Status.ARCHIVED } };
+  async listPublicWithProducts(type?: 'local' | 'imported', locale: 'es' | 'en' = 'es') {
+    const categoryFilter: Record<string, unknown> = { status: Status.PUBLISHED };
     if (type) {
       categoryFilter.type = type;
     }
 
     const categories = await this.categoryModel.find(categoryFilter).sort({ sortOrder: 1 }).lean().exec();
+    const productFilter: Record<string, any> = { published: true };
+    if (type) {
+      productFilter.type = type;
+    }
+
     const products = await this.productModel
-      .find({ published: true })
+      .find(productFilter)
       .sort({ sortOrder: 1, createdAt: -1 })
       .lean<Product[]>()
       .exec();
+
+    const getVal = (field: any) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[locale] || field['es'] || '';
+    };
 
     return categories.map((cat) => {
       const catProducts = products.filter(
@@ -95,33 +106,45 @@ export class CategoryService {
       );
 
       return {
-        ...cat,
-        id: (cat as any)._id,
-        products: catProducts.map((prod) => {
-          const {
-            createdBy: _createdBy,
-            updatedBy: _updatedBy,
-            variants: _variants,
-            options: _options,
-            compareAtPriceCents: _compareAtPriceCents,
-            preparation: _preparation,
-            featured: _featured,
-            bestSeller: _bestSeller,
-            newProduct: _newProduct,
-            primaryCategoryId: _primaryCategoryId,
-            categoryIds: _categoryIds,
-            shortDescription: _shortDescription,
-            dietaryTags: _dietaryTags,
-            availability: _availability,
-            ordering: _ordering,
-            priceLabel: _priceLabel,
-            productType: _productType,
-            ...clean
-          } = prod as any;
+        categoriaId: cat._id.toString(),
+        categoriaName: getVal(cat.name),
+        categoriaSlug: getVal(cat.slug),
+        categoriaOrigin: cat.origin || {},
+        sortOrder: cat.sortOrder || 0,
+        productos: catProducts.map((prod) => {
           return {
-            ...clean,
-            id: (prod as any)._id,
-            price: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+            productoId: (prod as any)._id.toString(),
+            productoName: getVal(prod.name),
+            productoSlug: getVal(prod.slug),
+            productoDescription: getVal(prod.description),
+            productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+            productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
+            productoIngredients: getVal(prod.ingredients),
+            productoAllergens: (() => {
+              const allergensMap: Record<string, string> = {
+                'gluten': 'Gluten',
+                'lactosa': 'Lactose',
+                'leche': 'Milk',
+                'huevo': 'Egg',
+                'nueces': 'Tree Nuts',
+                'mani': 'Peanuts',
+                'soya': 'Soy',
+              };
+              const rawAllergens = prod.allergens || [];
+              if (locale === 'en') {
+                return rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a);
+              }
+              return rawAllergens;
+            })(),
+            productoSeo: (() => {
+              const seoObj = prod.seo || {};
+              const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
+              return {
+                metaTitle: localizedSeo.metaTitle || '',
+                metaDescription: localizedSeo.metaDescription || '',
+              };
+            })(),
+            sortOrder: prod.sortOrder || 0,
           };
         }),
       };
