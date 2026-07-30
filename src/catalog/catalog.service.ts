@@ -416,7 +416,6 @@ export class ProductService implements OnModuleInit {
         $or: [
           { 'slug.es': query.categorySlug },
           { 'slug.en': query.categorySlug },
-          { slug: query.categorySlug },
         ],
       } as any).exec();
       if (!cat) {
