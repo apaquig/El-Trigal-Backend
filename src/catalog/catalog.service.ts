@@ -851,44 +851,20 @@ export class ProductService implements OnModuleInit {
 
       return {
         categoryId: cat._id.toString(),
-        categoryName: getCategoryName(cat),
-        categorySlug: getCategorySlug(cat),
-        categorySlugs: cat.slug || {},
+        categoryName: cat.name || { es: '', en: '' },
+        categorySlug: cat.slug || { es: '', en: '' },
+        categorySlugs: cat.slug || { es: '', en: '' },
         categoryOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
         products: catProducts.map((prod) => {
-          const getProductName = (p: any) => {
-            if (!p.name) return '';
-            if (typeof p.name === 'string') return p.name;
-            return p.name[locale] || p.name['es'] || '';
-          };
-
-          const getProductSlug = (p: any) => {
-            if (!p.slug) return '';
-            if (typeof p.slug === 'string') return p.slug;
-            return p.slug[locale] || p.slug['es'] || '';
-          };
-
-          const getProductDesc = (p: any) => {
-            if (!p.description) return '';
-            if (typeof p.description === 'string') return p.description;
-            return p.description[locale] || p.description['es'] || '';
-          };
-
-          const getProductIngredients = (p: any) => {
-            if (!p.ingredients) return '';
-            if (typeof p.ingredients === 'string') return p.ingredients;
-            return p.ingredients[locale] || p.ingredients['es'] || '';
-          };
-
           return {
             productId: (prod as any)._id.toString(),
-            productName: getProductName(prod),
-            productSlug: getProductSlug(prod),
-            productDescription: getProductDesc(prod),
+            productName: prod.name || { es: '', en: '' },
+            productSlug: prod.slug || { es: '', en: '' },
+            productDescription: prod.description || { es: '', en: '' },
             productPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
             productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
-            productIngredients: getProductIngredients(prod),
+            productIngredients: prod.ingredients || { es: '', en: '' },
             productAllergens: prod.allergens || [],
             productSeo: prod.seo || {},
             productType: prod.type || 'local',
