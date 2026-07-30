@@ -50,6 +50,9 @@ export class PublicCategoriesController {
   @Get()
   @ApiOkResponse({ description: 'Lista categorias publicadas.' })
   list(@Query() query: PublicCategoryQueryDto) {
+    if (query.page === undefined && query.limit === undefined) {
+      return this.categoryService.listPublicFlat(query);
+    }
     return this.categoryService.listPublic(query);
   }
 

@@ -63,6 +63,22 @@ export class CategoryService {
     return paginate(items, query.page, query.limit, totalItems);
   }
 
+  async listPublicFlat(query: PublicCategoryQueryDto) {
+    const filter: Record<string, unknown> = { status: Status.PUBLISHED };
+    if (query.featured !== undefined) {
+      filter.featured = query.featured;
+    }
+    if (query.search) {
+      filter.$text = { $search: query.search };
+    }
+
+    return this.categoryModel
+      .find(filter)
+      .sort({ sortOrder: 1, [`name.${query.locale}`]: 1 })
+      .lean<Category[]>()
+      .exec();
+  }
+
   async findPublicBySlug(slug: string, locale: 'es' | 'en'): Promise<Category> {
     const category = await this.categoryModel
       .findOne({ status: Status.PUBLISHED, [`slug.${locale}`]: slug })
