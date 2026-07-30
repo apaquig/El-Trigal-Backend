@@ -866,7 +866,16 @@ export class ProductService implements OnModuleInit {
             productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
             productIngredients: prod.ingredients || { es: '', en: '' },
             productAllergens: prod.allergens || [],
-            productSeo: prod.seo || {},
+            productSeo: prod.seo ? {
+              es: {
+                metaTitle: prod.seo.es?.metaTitle || '',
+                metaDescription: prod.seo.es?.metaDescription || '',
+              },
+              en: {
+                metaTitle: prod.seo.en?.metaTitle || '',
+                metaDescription: prod.seo.en?.metaDescription || '',
+              },
+            } : { es: { metaTitle: '', metaDescription: '' }, en: { metaTitle: '', metaDescription: '' } },
             productType: prod.type || 'local',
             productTranslations: prod.translations || {},
             sortOrder: prod.sortOrder || 0,
