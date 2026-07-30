@@ -853,6 +853,7 @@ export class ProductService implements OnModuleInit {
         categoryId: cat._id.toString(),
         categoryName: getCategoryName(cat),
         categorySlug: getCategorySlug(cat),
+        categorySlugs: cat.slug || {},
         categorySeo: cat.seo || {},
         categoryOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
