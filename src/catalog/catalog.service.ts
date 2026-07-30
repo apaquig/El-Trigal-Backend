@@ -898,7 +898,7 @@ export class ProductService implements OnModuleInit {
           };
         }),
       };
-    });
+    }).filter((cat) => cat.products.length > 0);
   }
 
   private toPublicProduct(product: any): Partial<Product> {
