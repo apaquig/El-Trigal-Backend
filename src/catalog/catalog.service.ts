@@ -865,7 +865,20 @@ export class ProductService implements OnModuleInit {
             productPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
             productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
             productIngredients: prod.ingredients || { es: '', en: '' },
-            productAllergens: prod.allergens || [],
+            productAllergens: (() => {
+              const allergensMap: Record<string, string> = {
+                'gluten': 'Gluten',
+                'lactosa': 'Lactose',
+                'leche': 'Milk',
+                'huevo': 'Egg',
+                'nueces': 'Tree Nuts',
+                'mani': 'Peanuts',
+                'soya': 'Soy',
+              };
+              const es = prod.allergens || [];
+              const en = es.map((a: string) => allergensMap[a.toLowerCase()] || a);
+              return { es, en };
+            })(),
             productSeo: prod.seo ? {
               es: {
                 metaTitle: prod.seo.es?.metaTitle || '',
