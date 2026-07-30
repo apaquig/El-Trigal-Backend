@@ -48,6 +48,9 @@ export class CategoryService {
     if (query.search) {
       filter.$text = { $search: query.search };
     }
+    if (query.type) {
+      filter.type = query.type;
+    }
 
     const [items, totalItems] = await Promise.all([
       this.categoryModel
@@ -70,6 +73,9 @@ export class CategoryService {
     }
     if (query.search) {
       filter.$text = { $search: query.search };
+    }
+    if (query.type) {
+      filter.type = query.type;
     }
 
     return this.categoryModel

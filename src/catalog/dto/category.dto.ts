@@ -187,4 +187,9 @@ export class PublicCategoryQueryDto extends PublicListQueryDto {
   @MinLength(2)
   @MaxLength(80)
   search?: string;
+
+  @ApiPropertyOptional({ enum: ['local', 'imported'] })
+  @IsOptional()
+  @IsIn(['local', 'imported'])
+  type?: 'local' | 'imported';
 }
