@@ -105,48 +105,85 @@ export class CategoryService {
         (p) => String(p.primaryCategoryId) === String(cat._id) || (p.categoryIds || []).map(String).includes(String(cat._id)),
       );
 
+      const mappedProds = catProducts.map((prod: any) => {
+        // Resolve nested product details using CategoryService local equivalent of mapSinglePublicProduct or call private helper
+        // Since we are inside CategoryService, we can implement a clean local product mapper or delegate.
+        // Let's implement a clean local mapper for nested products:
+        const allergensMap: Record<string, string> = {
+          'gluten': 'Gluten',
+          'lactosa': 'Lactose',
+          'leche': 'Milk',
+          'huevo': 'Egg',
+          'nueces': 'Tree Nuts',
+          'mani': 'Peanuts',
+          'soya': 'Soy',
+        };
+        const rawAllergens = prod.allergens || [];
+        const resolvedAllergens = locale === 'en'
+          ? rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a)
+          : rawAllergens;
+
+        const seoObj = prod.seo || {};
+        const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
+
+        return {
+          id: (prod as any)._id?.toString() || prod.id,
+          sku: prod.sku || null,
+          name: prod.name || { es: '', en: '' },
+          slug: prod.slug || { es: '', en: '' },
+          shortDescription: prod.descriptionShort || prod.shortDescription || { es: '', en: '' },
+          description: prod.description || { es: '', en: '' },
+          productType: prod.productType || 'simple',
+          basePriceCents: prod.basePriceCents || null,
+          compareAtPriceCents: prod.compareAtPriceCents || null,
+          currency: prod.currency || 'USD',
+          priceLabel: prod.priceLabel || null,
+          media: (prod.media || []).map((m: any) => ({
+            id: m.id || m._id || '',
+            publicId: m.publicId || '',
+            secureUrl: m.secureUrl || '',
+            alt: m.alt || { es: '', en: '' },
+            isPrimary: m.isPrimary ?? false,
+          })),
+          ingredients: prod.ingredients || null,
+          allergens: prod.allergens || [],
+          dietaryTags: prod.dietaryTags || [],
+          availability: prod.availability || { status: 'always' },
+          published: prod.published || false,
+
+          productoId: (prod as any)._id?.toString() || prod.id,
+          productoName: getVal(prod.name),
+          productoSlug: getVal(prod.slug),
+          productoDescription: getVal(prod.description),
+          productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+          productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
+          productoIngredients: getVal(prod.ingredients),
+          productoAllergens: resolvedAllergens,
+          productoSeo: {
+            metaTitle: localizedSeo.metaTitle || '',
+            metaDescription: localizedSeo.metaDescription || '',
+          },
+          sortOrder: prod.sortOrder || 0,
+        };
+      });
+
       return {
+        // Standard keys for frontend Zod schema
+        id: cat._id.toString(),
+        name: cat.name || { es: '', en: '' },
+        slug: cat.slug || { es: '', en: '' },
+        description: cat.description || undefined,
+        imageUrl: cat.image || undefined,
+        displayOrder: cat.sortOrder || 0,
+        products: mappedProds,
+
+        // Custom Spanish keys
         categoriaId: cat._id.toString(),
         categoriaName: getVal(cat.name),
         categoriaSlug: getVal(cat.slug),
         categoriaOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
-        productos: catProducts.map((prod) => {
-          return {
-            productoId: (prod as any)._id.toString(),
-            productoName: getVal(prod.name),
-            productoSlug: getVal(prod.slug),
-            productoDescription: getVal(prod.description),
-            productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
-            productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
-            productoIngredients: getVal(prod.ingredients),
-            productoAllergens: (() => {
-              const allergensMap: Record<string, string> = {
-                'gluten': 'Gluten',
-                'lactosa': 'Lactose',
-                'leche': 'Milk',
-                'huevo': 'Egg',
-                'nueces': 'Tree Nuts',
-                'mani': 'Peanuts',
-                'soya': 'Soy',
-              };
-              const rawAllergens = prod.allergens || [];
-              if (locale === 'en') {
-                return rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a);
-              }
-              return rawAllergens;
-            })(),
-            productoSeo: (() => {
-              const seoObj = prod.seo || {};
-              const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
-              return {
-                metaTitle: localizedSeo.metaTitle || '',
-                metaDescription: localizedSeo.metaDescription || '',
-              };
-            })(),
-            sortOrder: prod.sortOrder || 0,
-          };
-        }),
+        productos: mappedProds,
       };
     });
   }
@@ -439,48 +476,7 @@ export class ProductService implements OnModuleInit {
       this.productModel.countDocuments(filter).exec(),
     ]);
 
-    const getVal = (field: any) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[locale] || field['es'] || '';
-    };
-
-    const mappedProducts = productsRaw.map((prod) => {
-      return {
-        productoId: (prod as any)._id.toString(),
-        productoName: getVal(prod.name),
-        productoSlug: getVal(prod.slug),
-        productoDescription: getVal(prod.description),
-        productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
-        productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
-        productoIngredients: getVal(prod.ingredients),
-        productoAllergens: (() => {
-          const allergensMap: Record<string, string> = {
-            'gluten': 'Gluten',
-            'lactosa': 'Lactose',
-            'leche': 'Milk',
-            'huevo': 'Egg',
-            'nueces': 'Tree Nuts',
-            'mani': 'Peanuts',
-            'soya': 'Soy',
-          };
-          const rawAllergens = prod.allergens || [];
-          if (locale === 'en') {
-            return rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a);
-          }
-          return rawAllergens;
-        })(),
-        productoSeo: (() => {
-          const seoObj = prod.seo || {};
-          const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
-          return {
-            metaTitle: localizedSeo.metaTitle || '',
-            metaDescription: localizedSeo.metaDescription || '',
-          };
-        })(),
-        sortOrder: prod.sortOrder || 0,
-      };
-    });
+    const mappedProducts = productsRaw.map((prod) => this.mapSinglePublicProduct(prod, locale));
 
     return paginate<any>(
       mappedProducts,
@@ -490,7 +486,7 @@ export class ProductService implements OnModuleInit {
     );
   }
 
-  async findPublicBySlug(slug: string, locale: 'es' | 'en'): Promise<Partial<Product>> {
+  async findPublicBySlug(slug: string, locale: 'es' | 'en'): Promise<any> {
     const product = await this.productModel
       .findOne({ published: true, [`slug.${locale}`]: slug })
       .lean<Product>()
@@ -500,7 +496,7 @@ export class ProductService implements OnModuleInit {
       throw new NotFoundException();
     }
 
-    return this.toPublicProduct(product);
+    return this.mapSinglePublicProduct(product, locale);
   }
 
   async listPublicWithCategories(type?: 'local' | 'imported') {
@@ -575,7 +571,7 @@ export class ProductService implements OnModuleInit {
       .lean<Product[]>()
       .exec();
 
-    return items.map((item) => this.toPublicProduct(item));
+    return items.map((item) => this.mapSinglePublicProduct(item, locale));
   }
 
   async listAdmin(query: AdminProductQueryDto) {
@@ -964,32 +960,75 @@ export class ProductService implements OnModuleInit {
     });
   }
 
-  private toPublicProduct(product: any): Partial<Product> {
-    const {
-      createdBy: _createdBy,
-      updatedBy: _updatedBy,
-      variants: _variants,
-      options: _options,
-      compareAtPriceCents: _compareAtPriceCents,
-      preparation: _preparation,
-      featured: _featured,
-      bestSeller: _bestSeller,
-      newProduct: _newProduct,
-      primaryCategoryId: _primaryCategoryId,
-      categoryIds: _categoryIds,
-      shortDescription: _shortDescription,
-      dietaryTags: _dietaryTags,
-      availability: _availability,
-      ordering: _ordering,
-      priceLabel: _priceLabel,
-      productType: _productType,
-      ...publicProduct
-    } = product;
+  private mapSinglePublicProduct(prod: any, locale: 'es' | 'en') {
+    const getVal = (field: any) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[locale] || field['es'] || '';
+    };
+
+    const allergensMap: Record<string, string> = {
+      'gluten': 'Gluten',
+      'lactosa': 'Lactose',
+      'leche': 'Milk',
+      'huevo': 'Egg',
+      'nueces': 'Tree Nuts',
+      'mani': 'Peanuts',
+      'soya': 'Soy',
+    };
+    const rawAllergens = prod.allergens || [];
+    const resolvedAllergens = locale === 'en'
+      ? rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a)
+      : rawAllergens;
+
+    const seoObj = prod.seo || {};
+    const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
 
     return {
-      ...publicProduct,
-      published: product.published,
+      // Original standard properties for Frontend Zod Schema support
+      id: (prod as any)._id?.toString() || prod.id,
+      sku: prod.sku || null,
+      name: prod.name || { es: '', en: '' },
+      slug: prod.slug || { es: '', en: '' },
+      shortDescription: prod.descriptionShort || prod.shortDescription || { es: '', en: '' },
+      description: prod.description || { es: '', en: '' },
+      productType: prod.productType || 'simple',
+      basePriceCents: prod.basePriceCents || null,
+      compareAtPriceCents: prod.compareAtPriceCents || null,
+      currency: prod.currency || 'USD',
+      priceLabel: prod.priceLabel || null,
+      media: (prod.media || []).map((m: any) => ({
+        id: m.id || m._id || '',
+        publicId: m.publicId || '',
+        secureUrl: m.secureUrl || '',
+        alt: m.alt || { es: '', en: '' },
+        isPrimary: m.isPrimary ?? false,
+      })),
+      ingredients: prod.ingredients || null,
+      allergens: prod.allergens || [],
+      dietaryTags: prod.dietaryTags || [],
+      availability: prod.availability || { status: 'always' },
+      published: prod.published || false,
+
+      // Resolved Spanish camelCase properties for user direct API calls
+      productoId: (prod as any)._id?.toString() || prod.id,
+      productoName: getVal(prod.name),
+      productoSlug: getVal(prod.slug),
+      productoDescription: getVal(prod.description),
+      productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+      productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
+      productoIngredients: getVal(prod.ingredients),
+      productoAllergens: resolvedAllergens,
+      productoSeo: {
+        metaTitle: localizedSeo.metaTitle || '',
+        metaDescription: localizedSeo.metaDescription || '',
+      },
+      sortOrder: prod.sortOrder || 0,
     };
+  }
+
+  private toPublicProduct(product: any): any {
+    return this.mapSinglePublicProduct(product, 'es');
   }
 
   private async autoGenerateSeoAndTranslation(product: any): Promise<void> {
