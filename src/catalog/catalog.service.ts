@@ -815,7 +815,7 @@ export class ProductService implements OnModuleInit {
   }
 
   private async listPublicWithProducts(type?: 'local' | 'imported', locale: 'es' | 'en' = 'es') {
-    const categoryFilter: Record<string, unknown> = { status: { $ne: Status.ARCHIVED } };
+    const categoryFilter: Record<string, unknown> = { status: Status.PUBLISHED };
     if (type) {
       categoryFilter.type = type;
     }
