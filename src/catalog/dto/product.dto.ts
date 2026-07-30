@@ -510,6 +510,16 @@ export class PublicProductQueryDto extends PublicListQueryDto {
   @IsOptional()
   @IsIn(['local', 'imported'])
   type?: 'local' | 'imported';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  mainCategoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  categorySlug?: string;
 }
 
 export class AdminProductQueryDto extends AdminListQueryDto {

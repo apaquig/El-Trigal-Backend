@@ -411,6 +411,24 @@ export class ProductService implements OnModuleInit {
     if (query.availability) filter['availability.status'] = query.availability;
     if (query.search) filter.$text = { $search: query.search };
 
+    if (query.categorySlug) {
+      const cat = await this.categoryModel.findOne({
+        $or: [
+          { 'slug.es': query.categorySlug },
+          { 'slug.en': query.categorySlug },
+          { slug: query.categorySlug },
+        ],
+      } as any).exec();
+      if (!cat) {
+        return paginate([], query.page, query.limit, 0);
+      }
+      filter.categoryIds = cat._id;
+    }
+
+    if (query.mainCategoryId) {
+      filter.categoryIds = new Types.ObjectId(query.mainCategoryId);
+    }
+
     const [productsRaw, totalItems] = await Promise.all([
       this.productModel
         .find(filter)
