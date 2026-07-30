@@ -398,11 +398,12 @@ export class ProductService implements OnModuleInit {
   }
 
   async listPublic(query: PublicProductQueryDto & { type?: 'local' | 'imported' }) {
-    if (query.type) {
-      return this.listPublicWithProducts(query.type, query.locale ?? 'es');
-    }
-
+    const locale = query.locale ?? 'es';
     const filter: Record<string, unknown> = { published: true };
+
+    if (query.type) {
+      filter.type = query.type;
+    }
 
     if (query.featured !== undefined) filter.featured = query.featured;
     if (query.bestSeller !== undefined) filter.bestSeller = query.bestSeller;
@@ -410,32 +411,62 @@ export class ProductService implements OnModuleInit {
     if (query.availability) filter['availability.status'] = query.availability;
     if (query.search) filter.$text = { $search: query.search };
 
-    const categoriesFilter: Record<string, unknown> = { status: { $ne: Status.ARCHIVED } };
-    if (query.type) categoriesFilter.type = query.type;
-
-    const [productsRaw, totalItems, categoriesRaw] = await Promise.all([
+    const [productsRaw, totalItems] = await Promise.all([
       this.productModel
         .find(filter)
-        .sort(this.publicSort(query.sort ?? 'sortOrder', query.locale))
+        .sort(this.publicSort(query.sort ?? 'sortOrder', locale))
         .skip((query.page - 1) * query.limit)
         .limit(query.limit)
         .lean<Product[]>()
         .exec(),
       this.productModel.countDocuments(filter).exec(),
-      this.categoryModel.find(categoriesFilter).sort({ sortOrder: 1 }).lean().exec(),
     ]);
 
-    const mappedCategories = categoriesRaw.map((cat) => ({
-      ...cat,
-      id: cat._id.toString(),
-    }));
+    const getVal = (field: any) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[locale] || field['es'] || '';
+    };
 
-    const mappedProducts = productsRaw.map((item) => this.toPublicProduct(item));
-
-    const combinedItems = [...mappedCategories, ...mappedProducts];
+    const mappedProducts = productsRaw.map((prod) => {
+      return {
+        productoId: (prod as any)._id.toString(),
+        productoName: getVal(prod.name),
+        productoSlug: getVal(prod.slug),
+        productoDescription: getVal(prod.description),
+        productoPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
+        productoImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
+        productoIngredients: getVal(prod.ingredients),
+        productoAllergens: (() => {
+          const allergensMap: Record<string, string> = {
+            'gluten': 'Gluten',
+            'lactosa': 'Lactose',
+            'leche': 'Milk',
+            'huevo': 'Egg',
+            'nueces': 'Tree Nuts',
+            'mani': 'Peanuts',
+            'soya': 'Soy',
+          };
+          const rawAllergens = prod.allergens || [];
+          if (locale === 'en') {
+            return rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a);
+          }
+          return rawAllergens;
+        })(),
+        productoSeo: (() => {
+          const seoObj = prod.seo || {};
+          const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
+          return {
+            metaTitle: localizedSeo.metaTitle || '',
+            metaDescription: localizedSeo.metaDescription || '',
+          };
+        })(),
+        sortOrder: prod.sortOrder || 0,
+      };
+    });
 
     return paginate<any>(
-      combinedItems,
+      mappedProducts,
       query.page,
       query.limit,
       totalItems,
