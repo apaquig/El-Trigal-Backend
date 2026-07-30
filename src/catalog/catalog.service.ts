@@ -821,8 +821,13 @@ export class ProductService implements OnModuleInit {
     }
 
     const categories = await this.categoryModel.find(categoryFilter).sort({ sortOrder: 1 }).lean().exec();
+    const productFilter: Record<string, any> = { published: true };
+    if (type) {
+      productFilter.type = type;
+    }
+
     const products = await this.productModel
-      .find({ published: true })
+      .find(productFilter)
       .sort({ sortOrder: 1, createdAt: -1 })
       .lean<Product[]>()
       .exec();
