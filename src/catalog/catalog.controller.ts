@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -49,8 +50,9 @@ export class PublicCategoriesController {
 
   @Get()
   @ApiOkResponse({ description: 'Lista categorias publicadas.' })
-  list(@Query() query: PublicCategoryQueryDto) {
-    if (query.page === undefined && query.limit === undefined) {
+  list(@Query() query: PublicCategoryQueryDto, @Req() req: any) {
+    const hasPagination = 'page' in req.query || 'limit' in req.query;
+    if (!hasPagination) {
       return this.categoryService.listPublicFlat(query);
     }
     return this.categoryService.listPublic(query);
@@ -129,8 +131,9 @@ export class AdminCategoriesController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
-  list(@Query() query: AdminListQueryDto) {
-    if (query.page === undefined && query.limit === undefined) {
+  list(@Query() query: AdminListQueryDto, @Req() req: any) {
+    const hasPagination = 'page' in req.query || 'limit' in req.query;
+    if (!hasPagination) {
       return this.categoryService.listAdminFlat();
     }
     return this.categoryService.listAdmin(query.page, query.limit);
