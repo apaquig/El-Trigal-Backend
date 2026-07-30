@@ -216,6 +216,29 @@ export class CategoryService {
     return paginate(items, page, limit, totalItems);
   }
 
+  async listAdminFlat() {
+    const filter = { status: { $ne: Status.ARCHIVED } };
+    const items = await this.categoryModel
+      .find(filter)
+      .sort({ sortOrder: 1, createdAt: -1 })
+      .lean<Category[]>()
+      .exec();
+
+    const categoryIds = items.map(item => (item as any)._id);
+    const productCounts = await this.productModel.aggregate([
+      { $match: { categoryIds: { $in: categoryIds }, status: { $ne: Status.ARCHIVED } } },
+      { $unwind: '$categoryIds' },
+      { $match: { categoryIds: { $in: categoryIds } } },
+      { $group: { _id: '$categoryIds', count: { $sum: 1 } } }
+    ]);
+    const countMap = new Map(productCounts.map(pc => [pc._id.toString(), pc.count]));
+    items.forEach((item: any) => {
+      item.productCount = countMap.get(item._id.toString()) || 0;
+    });
+
+    return items;
+  }
+
   async findAdmin(id: string): Promise<Category> {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('ID de categoría inválido.');

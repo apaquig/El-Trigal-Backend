@@ -127,6 +127,9 @@ export class AdminCategoriesController {
 
   @Get()
   list(@Query() query: AdminListQueryDto) {
+    if (query.page === undefined && query.limit === undefined) {
+      return this.categoryService.listAdminFlat();
+    }
     return this.categoryService.listAdmin(query.page, query.limit);
   }
 
