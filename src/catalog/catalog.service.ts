@@ -465,7 +465,7 @@ export class ProductService implements OnModuleInit {
       filter.categoryIds = new Types.ObjectId(query.mainCategoryId);
     }
 
-    const [productsRaw, totalItems] = await Promise.all([
+    const [productsRaw, totalItems, categories] = await Promise.all([
       this.productModel
         .find(filter)
         .sort(this.publicSort(query.sort ?? 'sortOrder', locale))
@@ -474,9 +474,11 @@ export class ProductService implements OnModuleInit {
         .lean<Product[]>()
         .exec(),
       this.productModel.countDocuments(filter).exec(),
+      this.categoryModel.find().lean().exec(),
     ]);
 
-    const mappedProducts = productsRaw.map((prod) => this.mapSinglePublicProduct(prod, locale));
+    const categoryMap = new Map(categories.map(c => [c._id.toString(), c]));
+    const mappedProducts = productsRaw.map((prod) => this.mapSinglePublicProduct(prod, locale, categoryMap));
 
     return paginate<any>(
       mappedProducts,
@@ -496,7 +498,10 @@ export class ProductService implements OnModuleInit {
       throw new NotFoundException();
     }
 
-    return this.mapSinglePublicProduct(product, locale);
+    const categories = await this.categoryModel.find().lean().exec();
+    const categoryMap = new Map(categories.map(c => [c._id.toString(), c]));
+
+    return this.mapSinglePublicProduct(product, locale, categoryMap);
   }
 
   async listPublicWithCategories(type?: 'local' | 'imported') {
@@ -571,7 +576,10 @@ export class ProductService implements OnModuleInit {
       .lean<Product[]>()
       .exec();
 
-    return items.map((item) => this.mapSinglePublicProduct(item, locale));
+    const categories = await this.categoryModel.find().lean().exec();
+    const categoryMap = new Map(categories.map(c => [c._id.toString(), c]));
+
+    return items.map((item) => this.mapSinglePublicProduct(item, locale, categoryMap));
   }
 
   async listAdmin(query: AdminProductQueryDto) {
@@ -960,7 +968,7 @@ export class ProductService implements OnModuleInit {
     });
   }
 
-  private mapSinglePublicProduct(prod: any, locale: 'es' | 'en') {
+  private mapSinglePublicProduct(prod: any, locale: 'es' | 'en', categoryMap?: Map<string, any>) {
     const getVal = (field: any) => {
       if (!field) return '';
       if (typeof field === 'string') return field;
@@ -1009,6 +1017,33 @@ export class ProductService implements OnModuleInit {
       dietaryTags: prod.dietaryTags || [],
       availability: prod.availability || { status: 'always' },
       published: prod.published || false,
+      primaryCategory: (() => {
+        const catDoc = categoryMap?.get(prod.primaryCategoryId?.toString() || '');
+        return catDoc ? {
+          id: catDoc._id.toString(),
+          name: catDoc.name || { es: '', en: '' },
+          slug: catDoc.slug || { es: '', en: '' },
+        } : {
+          id: prod.primaryCategoryId?.toString() || '',
+          name: { es: '', en: '' },
+          slug: { es: '', en: '' },
+        };
+      })(),
+      categories: (() => {
+        const catIds = prod.categoryIds || [];
+        return catIds.map((cId: any) => {
+          const catDoc = categoryMap?.get(cId.toString());
+          return catDoc ? {
+            id: catDoc._id.toString(),
+            name: catDoc.name || { es: '', en: '' },
+            slug: catDoc.slug || { es: '', en: '' },
+          } : {
+            id: cId.toString(),
+            name: { es: '', en: '' },
+            slug: { es: '', en: '' },
+          };
+        });
+      })(),
 
       // Resolved Spanish camelCase properties for user direct API calls
       productoId: (prod as any)._id?.toString() || prod.id,
