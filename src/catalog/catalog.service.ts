@@ -854,7 +854,6 @@ export class ProductService implements OnModuleInit {
         categoryName: getCategoryName(cat),
         categorySlug: getCategorySlug(cat),
         categorySlugs: cat.slug || {},
-        categorySeo: cat.seo || {},
         categoryOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
         products: catProducts.map((prod) => {
