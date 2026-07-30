@@ -77,7 +77,7 @@ export class CategoryService {
   }
 
   async listPublicWithProducts(type?: 'local' | 'imported', locale: 'es' | 'en' = 'es') {
-    const categoryFilter: Record<string, unknown> = { status: Status.PUBLISHED };
+    const categoryFilter: Record<string, unknown> = { status: { $ne: Status.ARCHIVED } };
     if (type) {
       categoryFilter.type = type;
     }
