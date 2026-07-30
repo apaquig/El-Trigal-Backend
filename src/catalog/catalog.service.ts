@@ -892,6 +892,7 @@ export class ProductService implements OnModuleInit {
             productAllergens: prod.allergens || [],
             productSeo: prod.seo || {},
             productType: prod.type || 'local',
+            productTranslations: prod.translations || {},
             sortOrder: prod.sortOrder || 0,
           };
         }),
