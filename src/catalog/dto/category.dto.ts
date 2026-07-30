@@ -118,10 +118,10 @@ export class CreateCategoryDto {
   @IsMongoId()
   imageId?: string | null;
 
-  @ApiPropertyOptional({ enum: Status, default: Status.DRAFT })
+  @ApiPropertyOptional({ enum: Status, default: Status.PUBLISHED })
   @IsOptional()
   @IsEnum(Status)
-  status?: Status = Status.DRAFT;
+  status?: Status = Status.PUBLISHED;
 
   @ApiProperty({ enum: ['local', 'imported'], default: 'local' })
   @IsIn(['local', 'imported'])

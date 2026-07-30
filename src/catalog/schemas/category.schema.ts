@@ -41,7 +41,7 @@ export class Category {
   @Prop({ type: mediaAssetEmbeddedSchema, default: null })
   image: Record<string, unknown> | null;
 
-  @Prop({ type: String, enum: Object.values(Status), default: Status.DRAFT, required: true })
+  @Prop({ type: String, enum: Object.values(Status), default: Status.PUBLISHED, required: true })
   status: Status;
 
   @Prop({ type: Boolean, default: false, required: true })
