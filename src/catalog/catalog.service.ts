@@ -853,6 +853,8 @@ export class ProductService implements OnModuleInit {
         categoryId: cat._id.toString(),
         categoryName: getCategoryName(cat),
         categorySlug: getCategorySlug(cat),
+        categorySeo: cat.seo || {},
+        categoryOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
         products: catProducts.map((prod) => {
           const getProductName = (p: any) => {
@@ -888,6 +890,8 @@ export class ProductService implements OnModuleInit {
             productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
             productIngredients: getProductIngredients(prod),
             productAllergens: prod.allergens || [],
+            productSeo: prod.seo || {},
+            productType: prod.type || 'local',
             sortOrder: prod.sortOrder || 0,
           };
         }),
