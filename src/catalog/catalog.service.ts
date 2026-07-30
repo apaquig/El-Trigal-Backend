@@ -535,7 +535,13 @@ export class ProductService implements OnModuleInit {
 
   async findPublicBySlug(slug: string, locale: 'es' | 'en'): Promise<any> {
     const product = await this.productModel
-      .findOne({ published: true, [`slug.${locale}`]: slug })
+      .findOne({
+        published: true,
+        $or: [
+          { 'slug.es': slug },
+          { 'slug.en': slug }
+        ]
+      })
       .lean<Product>()
       .exec();
 
@@ -684,6 +690,13 @@ export class ProductService implements OnModuleInit {
       await this.assertProductReferences(dto);
       this.assertProductBusinessRules(dto, dto.published ?? false);
 
+      if (dto.featured) {
+        const featuredCount = await this.productModel.countDocuments({ featured: true }).exec();
+        if (featuredCount >= 6) {
+          throw new BadRequestException('El número máximo de productos destacados es 6.');
+        }
+      }
+
       const product = new this.productModel({
         ...dto,
         media: (dto.media || []).map((asset) => ({
@@ -722,6 +735,13 @@ export class ProductService implements OnModuleInit {
 
     if (dto.published && user.role === Role.EDITOR) {
       throw new ForbiddenException();
+    }
+
+    if (dto.featured) {
+      const featuredCount = await this.productModel.countDocuments({ featured: true, _id: { $ne: id } }).exec();
+      if (featuredCount >= 6) {
+        throw new BadRequestException('El número máximo de productos destacados es 6.');
+      }
     }
 
     const merged = {

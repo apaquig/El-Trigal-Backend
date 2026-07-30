@@ -151,6 +151,9 @@ export class Product {
   @Prop({ type: Boolean, default: false, required: true })
   published: boolean;
 
+  @Prop({ type: Boolean, default: false, required: true })
+  featured: boolean;
+
   @Prop({ type: Date, default: null })
   publishedAt: Date | null;
 
