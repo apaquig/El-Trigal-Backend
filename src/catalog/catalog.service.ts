@@ -876,7 +876,6 @@ export class ProductService implements OnModuleInit {
                 metaDescription: prod.seo.en?.metaDescription || '',
               },
             } : { es: { metaTitle: '', metaDescription: '' }, en: { metaTitle: '', metaDescription: '' } },
-            productTranslations: prod.translations || {},
             sortOrder: prod.sortOrder || 0,
           };
         }),
