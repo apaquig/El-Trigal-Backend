@@ -12,14 +12,14 @@ const csvOrigins = Joi.string()
     }
 
     for (const origin of origins) {
-      if (!/^https?:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin)) {
+      if (origin !== '*' && !/^https?:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin)) {
         return helpers.error('any.invalid');
       }
     }
 
     return value;
   })
-  .required();
+  .default('*');
 
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
@@ -27,14 +27,14 @@ export const envValidationSchema = Joi.object({
   MONGODB_URI: Joi.string()
     .uri({ scheme: ['mongodb', 'mongodb+srv'] })
     .required(),
-  JWT_ACCESS_SECRET: Joi.string().min(32).required(),
-  JWT_REFRESH_SECRET: Joi.string().min(32).required(),
+  JWT_ACCESS_SECRET: Joi.string().min(32).default('development-only-access-secret-change-before-production-2026'),
+  JWT_REFRESH_SECRET: Joi.string().min(32).default('development-only-refresh-secret-change-before-production-2026'),
   JWT_ISSUER: Joi.string().min(2).default('el-trigal-api'),
   JWT_AUDIENCE: Joi.string().min(2).default('el-trigal-admin'),
   COOKIE_DOMAIN: Joi.string().allow('').default(''),
   PUBLIC_ORIGINS: csvOrigins,
   ADMIN_ORIGINS: csvOrigins,
-  ANGULAR_PANEL_URL: Joi.string().uri().required(),
+  ANGULAR_PANEL_URL: Joi.string().uri().default('http://localhost:4200'),
   CLOUDINARY_CLOUD_NAME: Joi.string().min(2).required(),
   CLOUDINARY_API_KEY: Joi.string().min(2).required(),
   CLOUDINARY_API_SECRET: Joi.string().min(8).required(),
