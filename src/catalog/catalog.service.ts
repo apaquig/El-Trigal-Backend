@@ -841,34 +841,27 @@ export class ProductService implements OnModuleInit {
         (p) => String(p.primaryCategoryId) === String(cat._id) || (p.categoryIds || []).map(String).includes(String(cat._id)),
       );
 
-      const getCategoryName = (c: any) => {
-        if (!c.name) return '';
-        if (typeof c.name === 'string') return c.name;
-        return c.name[locale] || c.name['es'] || '';
-      };
-
-      const getCategorySlug = (c: any) => {
-        if (!c.slug) return '';
-        if (typeof c.slug === 'string') return c.slug;
-        return c.slug[locale] || c.slug['es'] || '';
+      const getVal = (field: any) => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        return field[locale] || field['es'] || '';
       };
 
       return {
         categoryId: cat._id.toString(),
-        categoryName: cat.name || { es: '', en: '' },
-        categorySlug: cat.slug || { es: '', en: '' },
-        categorySlugs: cat.slug || { es: '', en: '' },
+        categoryName: getVal(cat.name),
+        categorySlug: getVal(cat.slug),
         categoryOrigin: cat.origin || {},
         sortOrder: cat.sortOrder || 0,
         products: catProducts.map((prod) => {
           return {
             productId: (prod as any)._id.toString(),
-            productName: prod.name || { es: '', en: '' },
-            productSlug: prod.slug || { es: '', en: '' },
-            productDescription: prod.description || { es: '', en: '' },
+            productName: getVal(prod.name),
+            productSlug: getVal(prod.slug),
+            productDescription: getVal(prod.description),
             productPrice: prod.basePriceCents ? prod.basePriceCents / 100 : 0,
             productImage: prod.media && prod.media.find((m: any) => m.isPrimary)?.secureUrl || prod.media?.[0]?.secureUrl || null,
-            productIngredients: prod.ingredients || { es: '', en: '' },
+            productIngredients: getVal(prod.ingredients),
             productAllergens: (() => {
               const allergensMap: Record<string, string> = {
                 'gluten': 'Gluten',
@@ -879,20 +872,20 @@ export class ProductService implements OnModuleInit {
                 'mani': 'Peanuts',
                 'soya': 'Soy',
               };
-              const es = prod.allergens || [];
-              const en = es.map((a: string) => allergensMap[a.toLowerCase()] || a);
-              return { es, en };
+              const rawAllergens = prod.allergens || [];
+              if (locale === 'en') {
+                return rawAllergens.map((a: string) => allergensMap[a.toLowerCase()] || a);
+              }
+              return rawAllergens;
             })(),
-            productSeo: prod.seo ? {
-              es: {
-                metaTitle: prod.seo.es?.metaTitle || '',
-                metaDescription: prod.seo.es?.metaDescription || '',
-              },
-              en: {
-                metaTitle: prod.seo.en?.metaTitle || '',
-                metaDescription: prod.seo.en?.metaDescription || '',
-              },
-            } : { es: { metaTitle: '', metaDescription: '' }, en: { metaTitle: '', metaDescription: '' } },
+            productSeo: (() => {
+              const seoObj = prod.seo || {};
+              const localizedSeo = (seoObj[locale] || seoObj['es'] || {}) as any;
+              return {
+                metaTitle: localizedSeo.metaTitle || '',
+                metaDescription: localizedSeo.metaDescription || '',
+              };
+            })(),
             sortOrder: prod.sortOrder || 0,
           };
         }),

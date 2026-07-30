@@ -55,8 +55,11 @@ export class PublicCategoriesController {
 
   @Get('with-products')
   @ApiOkResponse({ description: 'Lista categorias publicadas con sus productos embebidos.' })
-  listWithProducts(@Query('type') type?: 'local' | 'imported') {
-    return this.categoryService.listPublicWithProducts(type);
+  listWithProducts(
+    @Query('type') type?: 'local' | 'imported',
+    @Query('locale') locale?: 'es' | 'en',
+  ) {
+    return this.categoryService.listPublicWithProducts(type, locale || 'es');
   }
 
   @Get(':slug')
