@@ -1,0 +1,1129 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "El Trigal API",
+    "version": "1.0.0",
+    "description": "API REST independiente para el website Astro y el panel Angular."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    { "name": "public/settings" },
+    { "name": "public/catalog" },
+    { "name": "public/content" },
+    { "name": "public/forms" },
+    { "name": "auth" },
+    { "name": "admin/products" },
+    { "name": "admin/categories" },
+    { "name": "admin/media" },
+    { "name": "admin/custom-cake-requests" },
+    { "name": "admin/settings" },
+    { "name": "admin/audit-logs" },
+    { "name": "admin/users" }
+  ],
+  "paths": {
+    "/public/settings": {
+      "get": {
+        "tags": ["public/settings"],
+        "operationId": "getPublicSettings",
+        "responses": {
+          "200": {
+            "description": "Configuracion publica.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/PublicSettings" }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/categories": {
+      "get": {
+        "tags": ["public/catalog"],
+        "operationId": "listPublicCategories",
+        "parameters": [
+          { "$ref": "#/components/parameters/locale" },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/search" },
+          { "$ref": "#/components/parameters/featured" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CategoryList" },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/public/categories/{slug}": {
+      "get": {
+        "tags": ["public/catalog"],
+        "operationId": "getPublicCategoryBySlug",
+        "parameters": [
+          { "$ref": "#/components/parameters/slug" },
+          { "$ref": "#/components/parameters/locale" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CategoryItem" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/public/products": {
+      "get": {
+        "tags": ["public/catalog"],
+        "operationId": "listPublicProducts",
+        "parameters": [
+          { "$ref": "#/components/parameters/locale" },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/search" },
+          { "$ref": "#/components/parameters/featured" },
+          { "$ref": "#/components/parameters/bestSeller" },
+          { "$ref": "#/components/parameters/newProduct" },
+          { "$ref": "#/components/parameters/availability" },
+          { "$ref": "#/components/parameters/productSort" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ProductList" },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/public/products/{slug}": {
+      "get": {
+        "tags": ["public/catalog"],
+        "operationId": "getPublicProductBySlug",
+        "parameters": [
+          { "$ref": "#/components/parameters/slug" },
+          { "$ref": "#/components/parameters/locale" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ProductItem" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/public/products/{slug}/related": {
+      "get": {
+        "tags": ["public/catalog"],
+        "operationId": "listRelatedProducts",
+        "parameters": [
+          { "$ref": "#/components/parameters/slug" },
+          { "$ref": "#/components/parameters/locale" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ProductArray" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/public/faqs": {
+      "get": {
+        "tags": ["public/content"],
+        "operationId": "listPublicFaqs",
+        "parameters": [
+          { "$ref": "#/components/parameters/locale" },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/FaqList" }
+        }
+      }
+    },
+    "/public/testimonials": {
+      "get": {
+        "tags": ["public/content"],
+        "operationId": "listPublicTestimonials",
+        "parameters": [
+          { "$ref": "#/components/parameters/locale" },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/TestimonialList" }
+        }
+      }
+    },
+    "/public/gallery": {
+      "get": {
+        "tags": ["public/content"],
+        "operationId": "listPublicGallery",
+        "parameters": [
+          { "$ref": "#/components/parameters/locale" },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/GalleryList" }
+        }
+      }
+    },
+    "/public/contact": {
+      "post": {
+        "tags": ["public/forms"],
+        "operationId": "submitContact",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ContactRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/AcceptedMessage" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/public/custom-cake-requests": {
+      "post": {
+        "tags": ["public/forms"],
+        "operationId": "submitCustomCakeRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomCakeRequestInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/AcceptedMessage" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthSuccess" },
+          "401": { "$ref": "#/components/responses/InvalidCredentials" },
+          "403": { "$ref": "#/components/responses/AccountLocked" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "refresh",
+        "description": "Usa cookie HttpOnly el_trigal_refresh y rota el refresh token.",
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthSuccess" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "logout",
+        "responses": {
+          "204": { "description": "Sesion cerrada sin cuerpo." }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" } } }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AcceptedMessage" },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "resetPassword",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResetPasswordRequest" } } }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AcceptedMessage" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["auth"],
+        "operationId": "getMe",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/UserItem" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "changePassword",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" } } }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AcceptedMessage" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/admin/products": {
+      "get": {
+        "tags": ["admin/products"],
+        "operationId": "listAdminProducts",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/status" },
+          { "$ref": "#/components/parameters/search" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ProductList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["admin/products"],
+        "operationId": "createProduct",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductInput" } } }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/ProductItem" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/admin/products/{id}": {
+      "get": {
+        "tags": ["admin/products"],
+        "operationId": "getAdminProduct",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "200": { "$ref": "#/components/responses/ProductItem" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "patch": {
+        "tags": ["admin/products"],
+        "operationId": "updateProduct",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductPatch" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/ProductItem" }, "400": { "$ref": "#/components/responses/ValidationError" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "delete": {
+        "tags": ["admin/products"],
+        "operationId": "archiveProductByDelete",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "204": { "description": "Producto archivado sin cuerpo." }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+    "/admin/products/{id}/publish": { "$ref": "#/components/pathItems/publishProduct" },
+    "/admin/products/{id}/archive": { "$ref": "#/components/pathItems/archiveProduct" },
+    "/admin/products/{id}/restore": { "$ref": "#/components/pathItems/restoreProduct" },
+    "/admin/products/{id}/duplicate": { "$ref": "#/components/pathItems/duplicateProduct" },
+    "/admin/categories": {
+      "get": {
+        "tags": ["admin/categories"],
+        "operationId": "listAdminCategories",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/page" }, { "$ref": "#/components/parameters/limit" }],
+        "responses": { "200": { "$ref": "#/components/responses/CategoryList" } }
+      },
+      "post": {
+        "tags": ["admin/categories"],
+        "operationId": "createCategory",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryInput" } } } },
+        "responses": { "201": { "$ref": "#/components/responses/CategoryItem" }, "400": { "$ref": "#/components/responses/ValidationError" }, "409": { "$ref": "#/components/responses/Conflict" } }
+      }
+    },
+    "/admin/categories/{id}": {
+      "get": {
+        "tags": ["admin/categories"],
+        "operationId": "getAdminCategory",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "200": { "$ref": "#/components/responses/CategoryItem" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "patch": {
+        "tags": ["admin/categories"],
+        "operationId": "updateCategory",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryPatch" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/CategoryItem" }, "400": { "$ref": "#/components/responses/ValidationError" } }
+      },
+      "delete": {
+        "tags": ["admin/categories"],
+        "operationId": "archiveCategoryByDelete",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "204": { "description": "Categoria archivada sin cuerpo." }, "409": { "$ref": "#/components/responses/CategoryNotEmpty" } }
+      }
+    },
+    "/admin/categories/reorder": {
+      "patch": {
+        "tags": ["admin/categories"],
+        "operationId": "reorderCategories",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReorderCategoriesRequest" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/AcceptedMessage" } }
+      }
+    },
+    "/admin/media/signature": {
+      "post": {
+        "tags": ["admin/media"],
+        "operationId": "createMediaSignature",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MediaSignatureRequest" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/MediaSignature" } }
+      }
+    },
+    "/admin/media/confirm": {
+      "post": {
+        "tags": ["admin/media"],
+        "operationId": "confirmMedia",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MediaAssetInput" } } } },
+        "responses": { "201": { "$ref": "#/components/responses/MediaItem" }, "400": { "$ref": "#/components/responses/ValidationError" } }
+      }
+    },
+    "/admin/media/{id}": {
+      "delete": {
+        "tags": ["admin/media"],
+        "operationId": "deleteMedia",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "204": { "description": "Media eliminado sin cuerpo." }, "409": { "$ref": "#/components/responses/MediaInUse" } }
+      }
+    },
+    "/admin/custom-cake-requests": {
+      "get": {
+        "tags": ["admin/custom-cake-requests"],
+        "operationId": "listCustomCakeRequests",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/page" }, { "$ref": "#/components/parameters/limit" }],
+        "responses": { "200": { "$ref": "#/components/responses/CustomCakeRequestList" } }
+      }
+    },
+    "/admin/custom-cake-requests/{id}": {
+      "get": {
+        "tags": ["admin/custom-cake-requests"],
+        "operationId": "getCustomCakeRequest",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "responses": { "200": { "$ref": "#/components/responses/CustomCakeRequestItem" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "patch": {
+        "tags": ["admin/custom-cake-requests"],
+        "operationId": "updateCustomCakeRequest",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomCakeRequestPatch" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/CustomCakeRequestItem" } }
+      }
+    },
+    "/admin/settings": {
+      "get": {
+        "tags": ["admin/settings"],
+        "operationId": "getAdminSettings",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/SettingsItem" } }
+      },
+      "patch": {
+        "tags": ["admin/settings"],
+        "operationId": "updateAdminSettings",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettingsPatch" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/SettingsItem" }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "tags": ["admin/audit-logs"],
+        "operationId": "listAuditLogs",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/page" }, { "$ref": "#/components/parameters/limit" }],
+        "responses": { "200": { "$ref": "#/components/responses/AuditLogList" } }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": ["admin/users"],
+        "operationId": "listUsers",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/UserList" } }
+      },
+      "post": {
+        "tags": ["admin/users"],
+        "operationId": "createUser",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateUserRequest" } } } },
+        "responses": { "201": { "$ref": "#/components/responses/UserItem" }, "409": { "$ref": "#/components/responses/Conflict" } }
+      }
+    },
+    "/admin/users/{id}": {
+      "patch": {
+        "tags": ["admin/users"],
+        "operationId": "updateUser",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/id" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/UserItem" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "parameters": {
+      "id": { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^[a-fA-F0-9]{24}$" } },
+      "slug": { "name": "slug", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" } },
+      "locale": { "name": "locale", "in": "query", "required": true, "schema": { "$ref": "#/components/schemas/Locale" } },
+      "page": { "name": "page", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 10000, "default": 1 } },
+      "limit": { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 24 } },
+      "search": { "name": "search", "in": "query", "required": false, "schema": { "type": "string", "minLength": 2, "maxLength": 80 } },
+      "featured": { "name": "featured", "in": "query", "required": false, "schema": { "type": "boolean" } },
+      "bestSeller": { "name": "bestSeller", "in": "query", "required": false, "schema": { "type": "boolean" } },
+      "newProduct": { "name": "newProduct", "in": "query", "required": false, "schema": { "type": "boolean" } },
+      "availability": { "name": "availability", "in": "query", "required": false, "schema": { "$ref": "#/components/schemas/AvailabilityStatus" } },
+      "productSort": { "name": "sort", "in": "query", "required": false, "schema": { "type": "string", "enum": ["sortOrder", "name", "price-asc", "price-desc", "newest"], "default": "sortOrder" } },
+      "status": { "name": "status", "in": "query", "required": false, "schema": { "$ref": "#/components/schemas/Status" } }
+    },
+    "pathItems": {
+      "publishProduct": {
+        "post": {
+          "tags": ["admin/products"],
+          "operationId": "publishProduct",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "$ref": "#/components/parameters/id" }],
+          "responses": { "200": { "$ref": "#/components/responses/ProductItem" }, "422": { "$ref": "#/components/responses/ValidationError" } }
+        }
+      },
+      "archiveProduct": {
+        "post": {
+          "tags": ["admin/products"],
+          "operationId": "archiveProduct",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "$ref": "#/components/parameters/id" }],
+          "responses": { "200": { "$ref": "#/components/responses/ProductItem" } }
+        }
+      },
+      "restoreProduct": {
+        "post": {
+          "tags": ["admin/products"],
+          "operationId": "restoreProduct",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "$ref": "#/components/parameters/id" }],
+          "responses": { "200": { "$ref": "#/components/responses/ProductItem" } }
+        }
+      },
+      "duplicateProduct": {
+        "post": {
+          "tags": ["admin/products"],
+          "operationId": "duplicateProduct",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "$ref": "#/components/parameters/id" }],
+          "responses": { "201": { "$ref": "#/components/responses/ProductItem" } }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": { "description": "Datos invalidos.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "Unauthorized": { "description": "No autenticado.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "Forbidden": { "description": "Sin permiso.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "InvalidCredentials": { "description": "Credenciales invalidas.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "AccountLocked": { "description": "Cuenta bloqueada temporalmente.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "NotFound": { "description": "No encontrado.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "Conflict": { "description": "Conflicto.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "RateLimited": { "description": "Rate limit.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "CategoryNotEmpty": { "description": "Categoria con productos.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "MediaInUse": { "description": "Media en uso.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "AcceptedMessage": { "description": "Mensaje aceptado.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MessageEnvelope" } } } },
+      "AuthSuccess": { "description": "Token access y usuario.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthEnvelope" } } } },
+      "UserItem": { "description": "Usuario.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserEnvelope" } } } },
+      "UserList": { "description": "Usuarios.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserListEnvelope" } } } },
+      "CategoryItem": { "description": "Categoria.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryEnvelope" } } } },
+      "CategoryList": { "description": "Categorias.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryListEnvelope" } } } },
+      "ProductItem": { "description": "Producto.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductEnvelope" } } } },
+      "ProductList": { "description": "Productos.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductListEnvelope" } } } },
+      "ProductArray": { "description": "Productos.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductArrayEnvelope" } } } },
+      "FaqList": { "description": "FAQs.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FaqListEnvelope" } } } },
+      "TestimonialList": { "description": "Testimonios.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TestimonialListEnvelope" } } } },
+      "GalleryList": { "description": "Galeria.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GalleryListEnvelope" } } } },
+      "MediaSignature": { "description": "Firma Cloudinary.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MediaSignatureEnvelope" } } } },
+      "MediaItem": { "description": "Media.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MediaEnvelope" } } } },
+      "CustomCakeRequestItem": { "description": "Solicitud.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomCakeRequestEnvelope" } } } },
+      "CustomCakeRequestList": { "description": "Solicitudes.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomCakeRequestListEnvelope" } } } },
+      "SettingsItem": { "description": "Configuracion.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettingsEnvelope" } } } },
+      "AuditLogList": { "description": "Auditoria.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuditLogListEnvelope" } } } }
+    },
+    "schemas": {
+      "Locale": { "type": "string", "enum": ["es", "en"] },
+      "Status": { "type": "string", "enum": ["draft", "published", "archived"] },
+      "ProductType": { "type": "string", "enum": ["simple", "variable", "custom", "seasonal", "retail"] },
+      "Allergen": { "type": "string", "enum": ["milk", "eggs", "wheat", "soy", "peanuts", "tree-nuts", "sesame"] },
+      "AvailabilityStatus": { "type": "string", "enum": ["available", "out-of-stock", "preorder", "seasonal", "discontinued"] },
+      "ErrorCode": { "type": "string", "enum": ["VALIDATION_ERROR", "UNAUTHORIZED", "FORBIDDEN", "INVALID_CREDENTIALS", "ACCOUNT_LOCKED", "TOKEN_EXPIRED", "TOKEN_INVALID", "EMAIL_ALREADY_EXISTS", "RESOURCE_NOT_FOUND", "SLUG_ALREADY_EXISTS", "SKU_ALREADY_EXISTS", "CATEGORY_NOT_EMPTY", "MEDIA_IN_USE", "CONFLICT", "RATE_LIMITED", "INTERNAL_ERROR"] },
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "requestId": { "type": "string", "format": "uuid" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["requestId", "timestamp"],
+        "additionalProperties": false
+      },
+      "PaginationMeta": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Meta" },
+          {
+            "type": "object",
+            "properties": {
+              "page": { "type": "integer", "minimum": 1 },
+              "limit": { "type": "integer", "minimum": 1 },
+              "totalItems": { "type": "integer", "minimum": 0 },
+              "totalPages": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["page", "limit", "totalItems", "totalPages"]
+          }
+        ]
+      },
+      "SuccessEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {},
+          "meta": { "$ref": "#/components/schemas/Meta" }
+        },
+        "required": ["success", "data", "meta"],
+        "additionalProperties": false
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "const": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "$ref": "#/components/schemas/ErrorCode" },
+              "message": { "type": "string" },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": { "type": "string" },
+                    "rule": { "type": "string" },
+                    "message": { "type": "string" }
+                  },
+                  "required": ["field", "rule", "message"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          },
+          "meta": { "$ref": "#/components/schemas/Meta" }
+        },
+        "required": ["success", "error", "meta"],
+        "additionalProperties": false
+      },
+      "LocalizedText": {
+        "type": "object",
+        "properties": {
+          "es": { "type": "string", "minLength": 1, "maxLength": 10000 },
+          "en": { "type": "string", "minLength": 1, "maxLength": 10000 }
+        },
+        "required": ["es", "en"],
+        "additionalProperties": false
+      },
+      "SeoFields": {
+        "type": "object",
+        "properties": {
+          "title": { "type": ["string", "null"], "maxLength": 70 },
+          "description": { "type": ["string", "null"], "maxLength": 160 },
+          "canonicalSlug": { "type": ["string", "null"], "maxLength": 120 }
+        },
+        "additionalProperties": false
+      },
+      "BrandColors": {
+        "type": "object",
+        "properties": {
+          "brown": { "type": "string", "const": "#4A3C31" },
+          "gold": { "type": "string", "const": "#D4AF37" },
+          "goldSecondary": { "type": "string", "const": "#C5A059" },
+          "cream": { "type": "string", "const": "#FDFBF7" }
+        },
+        "required": ["brown", "gold", "goldSecondary", "cream"],
+        "additionalProperties": false
+      },
+      "PublicSettings": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "object",
+            "properties": { "colors": { "$ref": "#/components/schemas/BrandColors" } },
+            "required": ["colors"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["brand"],
+        "additionalProperties": false
+      },
+      "MediaAsset": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "publicId": { "type": "string", "pattern": "^el-trigal/" },
+          "secureUrl": { "type": "string", "format": "uri" },
+          "resourceType": { "type": "string", "enum": ["image", "video"] },
+          "format": { "type": "string" },
+          "width": { "type": "integer", "minimum": 1, "maximum": 12000 },
+          "height": { "type": "integer", "minimum": 1, "maximum": 12000 },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "alt": { "$ref": "#/components/schemas/LocalizedText" },
+          "caption": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "isPrimary": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 10000 }
+        },
+        "required": ["id", "publicId", "secureUrl", "resourceType", "format", "width", "height", "bytes", "alt", "isPrimary", "sortOrder"],
+        "additionalProperties": false
+      },
+      "Availability": {
+        "type": "object",
+        "properties": {
+          "status": { "$ref": "#/components/schemas/AvailabilityStatus" },
+          "availableDays": { "type": "array", "uniqueItems": true, "items": { "type": "integer", "minimum": 0, "maximum": 6 } },
+          "startDate": { "type": ["string", "null"], "format": "date-time" },
+          "endDate": { "type": ["string", "null"], "format": "date-time" },
+          "leadTimeHours": { "type": ["integer", "null"], "minimum": 0, "maximum": 8760 },
+          "dailyStock": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000 }
+        },
+        "required": ["status", "availableDays", "startDate", "endDate", "leadTimeHours", "dailyStock"],
+        "additionalProperties": false
+      },
+      "OrderingOptions": {
+        "type": "object",
+        "properties": {
+          "onlineOrderingEnabled": { "type": "boolean" },
+          "pickupEnabled": { "type": "boolean" },
+          "deliveryEnabled": { "type": "boolean" },
+          "quoteRequired": { "type": "boolean" }
+        },
+        "required": ["onlineOrderingEnabled", "pickupEnabled", "deliveryEnabled", "quoteRequired"],
+        "additionalProperties": false
+      },
+      "Preparation": {
+        "type": "object",
+        "properties": {
+          "leadTimeHours": { "type": ["integer", "null"], "minimum": 0, "maximum": 8760 },
+          "instructions": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] }
+        },
+        "additionalProperties": false
+      },
+      "ProductVariant": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "sku": { "type": ["string", "null"], "pattern": "^[A-Z0-9][A-Z0-9._-]{1,39}$" },
+          "priceCents": { "type": "integer", "minimum": 0, "maximum": 100000000 },
+          "compareAtPriceCents": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000000 },
+          "minServings": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "maxServings": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "available": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 10000 }
+        },
+        "required": ["id", "name", "priceCents", "minServings", "maxServings", "available", "sortOrder"],
+        "additionalProperties": false
+      },
+      "ProductOptionValue": {
+        "type": "object",
+        "properties": {
+          "label": { "$ref": "#/components/schemas/LocalizedText" },
+          "priceModifierCents": { "type": "integer", "minimum": -100000000, "maximum": 100000000, "default": 0 },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 10000, "default": 0 }
+        },
+        "required": ["label", "priceModifierCents", "sortOrder"],
+        "additionalProperties": false
+      },
+      "ProductOption": {
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "type": { "type": "string", "enum": ["single", "multiple", "text"] },
+          "required": { "type": "boolean" },
+          "values": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/ProductOptionValue" } },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 10000 }
+        },
+        "required": ["name", "type", "required", "values", "sortOrder"],
+        "additionalProperties": false
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "parentId": { "type": ["string", "null"] },
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "slug": { "$ref": "#/components/schemas/LocalizedText" },
+          "description": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "shortDescription": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "image": { "anyOf": [{ "$ref": "#/components/schemas/MediaAsset" }, { "type": "null" }] },
+          "status": { "$ref": "#/components/schemas/Status" },
+          "featured": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 100000 },
+          "seo": { "$ref": "#/components/schemas/SeoFields" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "parentId", "name", "slug", "description", "shortDescription", "image", "status", "featured", "sortOrder", "seo", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "CategoryInput": {
+        "type": "object",
+        "properties": {
+          "parentId": { "type": ["string", "null"], "pattern": "^[a-fA-F0-9]{24}$" },
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "slug": { "$ref": "#/components/schemas/LocalizedText" },
+          "description": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "shortDescription": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "imageId": { "type": ["string", "null"], "pattern": "^[a-fA-F0-9]{24}$" },
+          "status": { "$ref": "#/components/schemas/Status" },
+          "featured": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 100000 },
+          "seo": { "$ref": "#/components/schemas/SeoFields" }
+        },
+        "required": ["name", "slug", "featured", "sortOrder"],
+        "additionalProperties": false
+      },
+      "CategoryPatch": { "$ref": "#/components/schemas/CategoryInput" },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "sku": { "type": ["string", "null"], "pattern": "^[A-Z0-9][A-Z0-9._-]{1,39}$" },
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "slug": { "$ref": "#/components/schemas/LocalizedText" },
+          "shortDescription": { "$ref": "#/components/schemas/LocalizedText" },
+          "description": { "$ref": "#/components/schemas/LocalizedText" },
+          "primaryCategoryId": { "type": "string" },
+          "categoryIds": { "type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": { "type": "string" } },
+          "productType": { "$ref": "#/components/schemas/ProductType" },
+          "basePriceCents": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000000 },
+          "compareAtPriceCents": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000000 },
+          "currency": { "type": "string", "const": "USD" },
+          "priceLabel": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "variants": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/ProductVariant" } },
+          "options": { "type": "array", "items": { "$ref": "#/components/schemas/ProductOption" } },
+          "media": { "type": "array", "maxItems": 20, "items": { "$ref": "#/components/schemas/MediaAsset" } },
+          "ingredients": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "allergens": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/components/schemas/Allergen" } },
+          "dietaryTags": { "type": "array", "maxItems": 30, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 40 } },
+          "availability": { "$ref": "#/components/schemas/Availability" },
+          "ordering": { "$ref": "#/components/schemas/OrderingOptions" },
+          "preparation": { "anyOf": [{ "$ref": "#/components/schemas/Preparation" }, { "type": "null" }] },
+          "tags": { "type": "array", "maxItems": 30, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 40 } },
+          "featured": { "type": "boolean" },
+          "bestSeller": { "type": "boolean" },
+          "newProduct": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 100000 },
+          "seo": { "$ref": "#/components/schemas/SeoFields" },
+          "status": { "$ref": "#/components/schemas/Status" },
+          "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+          "createdBy": { "type": "string" },
+          "updatedBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "sku", "name", "slug", "shortDescription", "description", "primaryCategoryId", "categoryIds", "productType", "basePriceCents", "compareAtPriceCents", "currency", "priceLabel", "variants", "options", "media", "allergens", "dietaryTags", "availability", "ordering", "tags", "featured", "bestSeller", "newProduct", "sortOrder", "seo", "status", "publishedAt", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "ProductInput": {
+        "type": "object",
+        "properties": {
+          "sku": { "type": ["string", "null"], "pattern": "^[A-Z0-9][A-Z0-9._-]{1,39}$" },
+          "name": { "$ref": "#/components/schemas/LocalizedText" },
+          "slug": { "$ref": "#/components/schemas/LocalizedText" },
+          "shortDescription": { "$ref": "#/components/schemas/LocalizedText" },
+          "description": { "$ref": "#/components/schemas/LocalizedText" },
+          "primaryCategoryId": { "type": "string", "pattern": "^[a-fA-F0-9]{24}$" },
+          "categoryIds": { "type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-fA-F0-9]{24}$" } },
+          "productType": { "$ref": "#/components/schemas/ProductType" },
+          "basePriceCents": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000000 },
+          "compareAtPriceCents": { "type": ["integer", "null"], "minimum": 0, "maximum": 100000000 },
+          "currency": { "type": "string", "const": "USD" },
+          "priceLabel": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "variants": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/ProductVariant" } },
+          "options": { "type": "array", "items": { "$ref": "#/components/schemas/ProductOption" } },
+          "media": { "type": "array", "maxItems": 20, "items": { "$ref": "#/components/schemas/MediaAsset" } },
+          "ingredients": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] },
+          "allergens": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/components/schemas/Allergen" } },
+          "dietaryTags": { "type": "array", "maxItems": 30, "items": { "type": "string" } },
+          "availability": { "$ref": "#/components/schemas/Availability" },
+          "ordering": { "$ref": "#/components/schemas/OrderingOptions" },
+          "preparation": { "anyOf": [{ "$ref": "#/components/schemas/Preparation" }, { "type": "null" }] },
+          "tags": { "type": "array", "maxItems": 30, "items": { "type": "string" } },
+          "featured": { "type": "boolean" },
+          "bestSeller": { "type": "boolean" },
+          "newProduct": { "type": "boolean" },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 100000 },
+          "seo": { "$ref": "#/components/schemas/SeoFields" },
+          "status": { "$ref": "#/components/schemas/Status" }
+        },
+        "required": ["name", "slug", "shortDescription", "description", "primaryCategoryId", "categoryIds", "productType", "currency", "variants", "options", "media", "allergens", "dietaryTags", "availability", "ordering", "tags", "featured", "bestSeller", "newProduct", "sortOrder"],
+        "additionalProperties": false
+      },
+      "ProductPatch": { "$ref": "#/components/schemas/ProductInput" },
+      "Faq": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "question": { "$ref": "#/components/schemas/LocalizedText" }, "answer": { "$ref": "#/components/schemas/LocalizedText" }, "sortOrder": { "type": "integer" } },
+        "required": ["id", "question", "answer", "sortOrder"]
+      },
+      "Testimonial": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "quote": { "$ref": "#/components/schemas/LocalizedText" }, "rating": { "type": "integer", "minimum": 1, "maximum": 5 }, "sortOrder": { "type": "integer" } },
+        "required": ["id", "name", "quote", "rating", "sortOrder"]
+      },
+      "GalleryItem": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "title": { "$ref": "#/components/schemas/LocalizedText" }, "description": { "anyOf": [{ "$ref": "#/components/schemas/LocalizedText" }, { "type": "null" }] }, "media": { "$ref": "#/components/schemas/MediaAsset" }, "featured": { "type": "boolean" }, "sortOrder": { "type": "integer" } },
+        "required": ["id", "title", "description", "media", "featured", "sortOrder"]
+      },
+      "ContactRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 80 },
+          "email": { "type": "string", "format": "email", "maxLength": 254 },
+          "phone": { "type": ["string", "null"], "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "subject": { "type": "string", "minLength": 3, "maxLength": 100 },
+          "message": { "type": "string", "minLength": 10, "maxLength": 2000 },
+          "locale": { "$ref": "#/components/schemas/Locale" },
+          "honeypot": { "type": "string", "maxLength": 0 }
+        },
+        "required": ["name", "email", "subject", "message", "locale"],
+        "additionalProperties": false
+      },
+      "CustomCakeRequestInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 80 },
+          "email": { "type": "string", "format": "email", "maxLength": 254 },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "eventDate": { "type": "string", "format": "date" },
+          "eventType": { "type": "string", "enum": ["birthday", "wedding", "quinceanera", "corporate", "other"] },
+          "servings": { "type": "integer", "minimum": 1, "maximum": 500 },
+          "budgetCents": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+          "flavor": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "filling": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "theme": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "message": { "type": "string", "maxLength": 2000 },
+          "imageIds": { "type": "array", "maxItems": 5, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-fA-F0-9]{24}$" } },
+          "locale": { "$ref": "#/components/schemas/Locale" },
+          "consent": { "type": "boolean", "const": true },
+          "honeypot": { "type": "string", "maxLength": 0 }
+        },
+        "required": ["name", "email", "phone", "eventDate", "eventType", "servings", "flavor", "filling", "theme", "locale", "consent"],
+        "additionalProperties": false
+      },
+      "CustomCakeRequest": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CustomCakeRequestInput" },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "images": { "type": "array", "items": { "$ref": "#/components/schemas/MediaAsset" } },
+              "status": { "type": "string", "enum": ["new", "in-review", "quoted", "won", "lost", "archived"] },
+              "internalNotes": { "type": ["string", "null"], "maxLength": 2000 },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "CustomCakeRequestPatch": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["new", "in-review", "quoted", "won", "lost", "archived"] },
+          "internalNotes": { "type": ["string", "null"], "maxLength": 2000 }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "format": "email", "maxLength": 254 }, "password": { "type": "string", "minLength": 8, "maxLength": 128 } },
+        "required": ["email", "password"],
+        "additionalProperties": false
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "format": "email", "maxLength": 254 } },
+        "required": ["email"],
+        "additionalProperties": false
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": { "token": { "type": "string", "minLength": 32 }, "password": { "type": "string", "minLength": 12, "maxLength": 128 } },
+        "required": ["token", "password"],
+        "additionalProperties": false
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": { "currentPassword": { "type": "string", "minLength": 8, "maxLength": 128 }, "newPassword": { "type": "string", "minLength": 12, "maxLength": 128 } },
+        "required": ["currentPassword", "newPassword"],
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "email": { "type": "string", "format": "email" }, "role": { "type": "string", "enum": ["OWNER", "ADMIN", "EDITOR"] }, "status": { "type": "string", "enum": ["active", "disabled"] } },
+        "required": ["id", "email", "role", "status"],
+        "additionalProperties": false
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "format": "email" }, "role": { "type": "string", "enum": ["OWNER", "ADMIN", "EDITOR"] }, "password": { "type": "string", "minLength": 12, "maxLength": 128 } },
+        "required": ["email", "role", "password"],
+        "additionalProperties": false
+      },
+      "UpdateUserRequest": { "$ref": "#/components/schemas/CreateUserRequest" },
+      "MediaSignatureRequest": {
+        "type": "object",
+        "properties": { "folder": { "type": "string", "enum": ["el-trigal/products", "el-trigal/categories", "el-trigal/custom-cakes", "el-trigal/gallery", "el-trigal/business", "el-trigal/temporary"] }, "resourceType": { "type": "string", "enum": ["image", "video"] } },
+        "required": ["folder", "resourceType"],
+        "additionalProperties": false
+      },
+      "MediaSignatureData": {
+        "type": "object",
+        "properties": { "cloudName": { "type": "string" }, "apiKey": { "type": "string" }, "timestamp": { "type": "integer" }, "folder": { "type": "string" }, "resourceType": { "type": "string" }, "signature": { "type": "string" } },
+        "required": ["cloudName", "apiKey", "timestamp", "folder", "resourceType", "signature"],
+        "additionalProperties": false
+      },
+      "MediaAssetInput": {
+        "allOf": [
+          { "$ref": "#/components/schemas/MediaAsset" },
+          {
+            "type": "object",
+            "properties": { "folder": { "type": "string", "enum": ["el-trigal/products", "el-trigal/categories", "el-trigal/custom-cakes", "el-trigal/gallery", "el-trigal/business", "el-trigal/temporary"] } },
+            "required": ["folder"]
+          }
+        ]
+      },
+      "SettingsPatch": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "object",
+            "properties": {
+              "colors": {
+                "type": "object",
+                "properties": {
+                  "brown": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+                  "gold": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+                  "goldSecondary": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+                  "cream": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+                },
+                "required": ["brown", "gold", "goldSecondary", "cream"],
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "businessName": { "$ref": "#/components/schemas/LocalizedText" },
+          "publicEmail": { "type": ["string", "null"], "format": "email", "maxLength": 254 },
+          "publicPhone": { "type": ["string", "null"], "maxLength": 30 },
+          "address": { "type": ["string", "null"], "maxLength": 200 }
+        },
+        "additionalProperties": false
+      },
+      "ReorderCategoriesRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": { "id": { "type": "string", "pattern": "^[a-fA-F0-9]{24}$" }, "sortOrder": { "type": "integer", "minimum": 0, "maximum": 100000 } },
+              "required": ["id", "sortOrder"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "AuditLog": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "userId": { "type": ["string", "null"] }, "action": { "type": "string" }, "resourceType": { "type": "string" }, "resourceId": { "type": ["string", "null"] }, "metadata": { "type": "object" }, "createdAt": { "type": "string", "format": "date-time" } },
+        "required": ["id", "userId", "action", "resourceType", "resourceId", "metadata", "createdAt"]
+      },
+      "MessageEnvelope": {
+        "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "object", "properties": { "id": { "type": "string" }, "message": { "type": "string" }, "updated": { "type": "integer" } } } } }]
+      },
+      "AuthEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "object", "properties": { "accessToken": { "type": "string" }, "expiresIn": { "type": "integer", "const": 900 }, "user": { "$ref": "#/components/schemas/User" } }, "required": ["accessToken", "expiresIn", "user"] } } }] },
+      "UserEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/User" } } }] },
+      "UserListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/User" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "CategoryEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Category" } } }] },
+      "CategoryListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Category" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "ProductEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Product" } } }] },
+      "ProductListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "ProductArrayEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } }] },
+      "FaqListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Faq" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "TestimonialListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Testimonial" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "GalleryListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/GalleryItem" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "MediaSignatureEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/MediaSignatureData" } } }] },
+      "MediaEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/MediaAsset" } } }] },
+      "CustomCakeRequestEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/CustomCakeRequest" } } }] },
+      "CustomCakeRequestListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/CustomCakeRequest" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] },
+      "SettingsEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/PublicSettings" } } }] },
+      "AuditLogListEnvelope": { "allOf": [{ "$ref": "#/components/schemas/SuccessEnvelope" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/AuditLog" } }, "meta": { "$ref": "#/components/schemas/PaginationMeta" } } }] }
+    }
+  }
+}
