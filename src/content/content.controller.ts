@@ -25,4 +25,10 @@ export class ContentController {
   gallery(@Query() query: PublicListQueryDto) {
     return this.contentService.listGallery(query);
   }
+
+  @Get('reviews')
+  @ApiOkResponse({ description: 'Reseñas de Google Places.' })
+  reviews(@Query('locale') locale?: string) {
+    return this.contentService.getGoogleReviews(locale);
+  }
 }
