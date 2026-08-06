@@ -210,7 +210,7 @@ export class CategoryService {
     });
   }
 
-  async listAdmin(page = 1, limit = 24) {
+  async listAdmin(page = 1, limit = 10) {
     const filter = { status: { $ne: Status.ARCHIVED } };
     const [items, totalItems] = await Promise.all([
       this.categoryModel

@@ -271,13 +271,13 @@ export class AdminListQueryDto {
   @Max(10000)
   page = 1;
 
-  @ApiPropertyOptional({ default: 24, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ default: 10, minimum: 1, maximum: 100 })
   @IsOptional()
   @Transform(({ value }) => Number.parseInt(String(value), 10))
   @IsInt()
   @Min(1)
   @Max(100)
-  limit = 24;
+  limit = 10;
 }
 
 export class MarkdownTextDto extends LocalizedTextDto {
