@@ -35,9 +35,47 @@ export class SettingsService {
       throw new ForbiddenException('Solo OWNER puede editar configuracion de marca.');
     }
 
-    const update: Record<string, unknown> = { ...dto };
+    const update: Record<string, unknown> = {};
+
     if (dto.brand?.colors) {
       update.brand = { colors: this.normalizeBrandColors(dto.brand.colors) };
+    }
+
+    if (dto.businessName !== undefined) {
+      if (typeof dto.businessName === 'string') {
+        update.businessName = { es: dto.businessName, en: dto.businessName };
+      } else if (typeof dto.businessName === 'object' && dto.businessName !== null) {
+        update.businessName = {
+          es: dto.businessName.es || dto.businessName.en || '',
+          en: dto.businessName.en || dto.businessName.es || '',
+        };
+      }
+    }
+
+    const email = dto.publicEmail ?? dto.email;
+    if (email !== undefined) {
+      update.publicEmail = email;
+    }
+
+    const phone = dto.publicPhone ?? dto.phonePrimary;
+    if (phone !== undefined) {
+      update.publicPhone = phone;
+    }
+
+    if (dto.address !== undefined) {
+      if (typeof dto.address === 'string') {
+        update.address = dto.address;
+      } else if (typeof dto.address === 'object' && dto.address !== null) {
+        const parts = [
+          dto.address.street,
+          dto.address.suite,
+          dto.address.city,
+          dto.address.state ? `${dto.address.state} ${dto.address.zip || ''}`.trim() : dto.address.zip,
+        ].filter(Boolean);
+        update.address = parts.join(', ');
+      } else {
+        update.address = null;
+      }
     }
 
     return this.settingsModel

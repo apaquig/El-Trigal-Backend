@@ -39,27 +39,31 @@ export class UpdateSettingsDto {
   @Type(() => BrandSettingsDto)
   brand?: BrandSettingsDto;
 
-  @ApiPropertyOptional({ type: LocalizedTextDto })
+  @ApiPropertyOptional()
   @IsOptional()
-  @ValidateNested()
-  @Type(() => LocalizedTextDto)
-  businessName?: LocalizedTextDto;
+  businessName?: any;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsEmail()
-  @MaxLength(254)
   publicEmail?: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
+  email?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
   publicPhone?: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  address?: string | null;
+  phonePrimary?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  phoneSecondary?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  address?: any;
 }
