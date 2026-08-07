@@ -43,6 +43,9 @@ export class BusinessSettings {
   publicPhone: string | null;
 
   @Prop({ type: String, trim: true, default: null })
+  phoneSecondary: string | null;
+
+  @Prop({ type: String, trim: true, default: null })
   address: string | null;
 }
 

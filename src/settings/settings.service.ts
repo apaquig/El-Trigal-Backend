@@ -62,6 +62,10 @@ export class SettingsService {
       update.publicPhone = phone;
     }
 
+    if (dto.phoneSecondary !== undefined) {
+      update.phoneSecondary = dto.phoneSecondary;
+    }
+
     if (dto.address !== undefined) {
       if (typeof dto.address === 'string') {
         update.address = dto.address;
