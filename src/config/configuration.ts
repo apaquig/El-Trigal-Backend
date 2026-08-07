@@ -34,6 +34,11 @@ export interface AppConfig {
     timeCost: number;
     parallelism: number;
   };
+  brevo: {
+    apiKey: string;
+    senderEmail: string;
+    senderName: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -69,5 +74,10 @@ export default (): AppConfig => ({
     memoryCost: Number(process.env.ARGON2_MEMORY_COST ?? 65_536),
     timeCost: Number(process.env.ARGON2_TIME_COST ?? 3),
     parallelism: Number(process.env.ARGON2_PARALLELISM ?? 1),
+  },
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY ?? '',
+    senderEmail: process.env.BREVO_SENDER_EMAIL ?? 'admin@eltrigalbakery.com',
+    senderName: process.env.BREVO_SENDER_NAME ?? 'El Trigal Bakery',
   },
 });

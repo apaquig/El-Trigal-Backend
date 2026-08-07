@@ -47,6 +47,9 @@ export const envValidationSchema = Joi.object({
   ARGON2_MEMORY_COST: Joi.number().integer().min(19_456).default(65_536),
   ARGON2_TIME_COST: Joi.number().integer().min(2).default(3),
   ARGON2_PARALLELISM: Joi.number().integer().min(1).default(1),
+  BREVO_API_KEY: Joi.string().allow('').default(''),
+  BREVO_SENDER_EMAIL: Joi.string().email().default('admin@eltrigalbakery.com'),
+  BREVO_SENDER_NAME: Joi.string().default('El Trigal Bakery'),
 });
 
 export function splitOrigins(value: string | undefined): string[] {

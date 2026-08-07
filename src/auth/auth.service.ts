@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -196,12 +197,99 @@ export class AuthService {
         expiresAt: new Date(Date.now() + 30 * 60 * 1000),
       });
 
-      // Production wiring should send `${ANGULAR_PANEL_URL}/reset-password?token=${token}` here.
+      // Send reset password email asynchronously
+      this.sendResetPasswordEmail(user.email, 'Administrador de El Trigal', token).catch((err) => {
+        Logger.error('Unhandled error sending reset password email', err.stack, 'AuthService');
+      });
     }
 
     return {
       message: 'Si el correo existe, se enviaran instrucciones para restablecer la contrasena.',
     };
+  }
+
+  private async sendResetPasswordEmail(
+    email: string,
+    userName: string,
+    token: string,
+  ): Promise<void> {
+    const brevoConfig = this.config.get<AppConfig['brevo']>('brevo');
+    const angularPanelUrl = this.config.get<string>('angularPanelUrl');
+
+    if (!brevoConfig?.apiKey) {
+      Logger.warn(
+        'Brevo API key is not configured. Reset password email not sent.',
+        'AuthService',
+      );
+      return;
+    }
+
+    const resetLink = `${angularPanelUrl}/reset-password?token=${token}`;
+
+    const body = {
+      sender: {
+        name: brevoConfig.senderName,
+        email: brevoConfig.senderEmail,
+      },
+      to: [
+        {
+          email: email,
+          name: userName,
+        },
+      ],
+      subject: 'Restablecer contraseña - El Trigal',
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fcfbf7;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #634326; margin: 0; font-family: 'Georgia', serif;">Panadería El Trigal</h1>
+          </div>
+          <h2 style="color: #333333;">Hola,</h2>
+          <p style="color: #555555; line-height: 1.6;">
+            Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en el panel administrativo de <strong>El Trigal</strong>.
+          </p>
+          <p style="color: #555555; line-height: 1.6;">
+            Haz clic en el siguiente botón para restablecer tu contraseña. Este enlace es válido por 30 minutos:
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #d1a84c; color: #fcfbf7; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              Restablecer Contraseña
+            </a>
+          </div>
+          <p style="color: #555555; line-height: 1.6; font-size: 13px;">
+            Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:
+            <br />
+            <a href="${resetLink}" style="color: #d1a84c; word-break: break-all;">${resetLink}</a>
+          </p>
+          <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 30px 0;" />
+          <p style="color: #777777; font-size: 12px; line-height: 1.5; text-align: center;">
+            Este es un correo automático. Si no solicitaste este cambio, puedes ignorar este correo de forma segura.
+          </p>
+        </div>
+      `,
+    };
+
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'api-key': brevoConfig.apiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Brevo returned status ${response.status}: ${errorText}`);
+      }
+    } catch (err: any) {
+      Logger.error(
+        `Failed to send reset password email via Brevo: ${err.message}`,
+        err.stack,
+        'AuthService',
+      );
+    }
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
