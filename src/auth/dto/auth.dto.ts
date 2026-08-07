@@ -82,6 +82,18 @@ export class CreateUserDto {
   @MaxLength(254)
   email: string;
 
+  @ApiProperty({ minLength: 2, maxLength: 100 })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  firstName: string;
+
+  @ApiProperty({ minLength: 2, maxLength: 100 })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  lastName: string;
+
   @ApiProperty({ enum: Role })
   @IsEnum(Role)
   role: Role;

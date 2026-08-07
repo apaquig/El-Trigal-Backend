@@ -51,6 +51,8 @@ interface IssuedTokens {
 export interface PublicUser {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   role: Role;
   status: UserStatus;
 }
@@ -392,6 +394,8 @@ export class AuthService {
 
     const user = await this.userModel.create({
       email: dto.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       role: dto.role,
       passwordHash: await this.hashPassword(dto.password),
     });
@@ -419,6 +423,14 @@ export class AuthService {
         throw new ConflictException();
       }
       user.email = dto.email;
+    }
+
+    if (dto.firstName) {
+      user.firstName = dto.firstName;
+    }
+
+    if (dto.lastName) {
+      user.lastName = dto.lastName;
     }
 
     if (dto.role) {
@@ -599,6 +611,8 @@ export class AuthService {
     return {
       id: source.id ?? String(source._id),
       email: source.email,
+      firstName: source.firstName,
+      lastName: source.lastName,
       role: source.role,
       status: source.status,
     };
