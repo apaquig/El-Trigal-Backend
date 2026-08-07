@@ -216,15 +216,15 @@ export class AuthService {
     const brevoConfig = this.config.get<AppConfig['brevo']>('brevo');
     const angularPanelUrl = this.config.get<string>('angularPanelUrl');
 
+    const resetLink = `${angularPanelUrl}/reset-password?token=${token}`;
+
     if (!brevoConfig?.apiKey) {
       Logger.warn(
-        'Brevo API key is not configured. Reset password email not sent.',
+        `Brevo API key is not configured. [DEVELOPMENT RESET LINK]: ${resetLink}`,
         'AuthService',
       );
       return;
     }
-
-    const resetLink = `${angularPanelUrl}/reset-password?token=${token}`;
 
     const body = {
       sender: {
