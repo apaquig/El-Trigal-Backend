@@ -29,6 +29,8 @@ async function bootstrap(): Promise<void> {
   const allowedOrigins = [
     ...config.get('publicOrigins', { infer: true }),
     ...config.get('adminOrigins', { infer: true }),
+    'https://eltrigalpancalientito.com',
+    'https://www.eltrigalpancalientito.com',
   ];
 
   app.enableCors({
