@@ -6,10 +6,15 @@ import {
   HttpStatus,
   Param,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -42,6 +47,33 @@ export class MediaController {
   @ApiCreatedResponse({ description: 'Confirma y persiste metadata de Cloudinary.' })
   confirm(@Body() dto: ConfirmMediaDto, @CurrentUser() user: AuthenticatedUser) {
     return this.mediaService.confirm(dto, user);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        folder: {
+          type: 'string',
+          default: 'products',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({ description: 'Carga directa y persiste metadata de Cloudinary.' })
+  upload(
+    @UploadedFile() file: any,
+    @Body('folder') folder: string = 'products',
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.mediaService.upload(file, folder, user);
   }
 
   @Delete(':id')

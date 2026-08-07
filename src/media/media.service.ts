@@ -210,6 +210,65 @@ export class MediaService {
     }
   }
 
+  async upload(
+    file: any,
+    folder: string,
+    user: AuthenticatedUser,
+  ): Promise<MediaAsset> {
+    if (!file) {
+      throw new BadRequestException('No se ha proporcionado ningún archivo.');
+    }
+
+    // Map simple folder name to MediaFolder enum
+    let finalFolder: MediaFolder = MediaFolder.PRODUCTS;
+    if (folder === 'products') finalFolder = MediaFolder.PRODUCTS;
+    else if (folder === 'categories') finalFolder = MediaFolder.CATEGORIES;
+    else if (folder === 'custom-cakes') finalFolder = MediaFolder.CUSTOM_CAKES;
+    else if (folder === 'gallery') finalFolder = MediaFolder.GALLERY;
+    else if (folder === 'business') finalFolder = MediaFolder.BUSINESS;
+    else if (folder === 'temporary') finalFolder = MediaFolder.TEMPORARY;
+
+    // Upload file stream to Cloudinary
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: finalFolder,
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        },
+      );
+      uploadStream.end(file.buffer);
+    });
+
+    const temporaryExpiresAt =
+      finalFolder === MediaFolder.TEMPORARY ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
+
+    // Save metadata to database
+    const asset = await this.mediaModel.create({
+      publicId: result.public_id,
+      secureUrl: this.deliveryUrl(result.secure_url),
+      resourceType: result.resource_type || 'image',
+      format: result.format ? result.format.toLowerCase() : 'jpg',
+      width: result.width || 800,
+      height: result.height || 800,
+      bytes: result.bytes || 0,
+      folder: finalFolder,
+      confirmed: true,
+      createdBy: new Types.ObjectId(user.sub),
+      temporaryExpiresAt,
+      alt: {
+        es: 'Imagen de producto',
+        en: 'Product image',
+      },
+      sortOrder: 0,
+    });
+
+    return asset;
+  }
+
   private deliveryUrl(url: string): string {
     return url.replace('/upload/', '/upload/f_auto,q_auto/');
   }
