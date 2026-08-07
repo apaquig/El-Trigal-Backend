@@ -416,24 +416,24 @@ export class CreateProductDto {
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
-  featured?: boolean = false;
+  featured?: boolean;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
-  bestSeller?: boolean = false;
+  bestSeller?: boolean;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
-  newProduct?: boolean = false;
+  newProduct?: boolean;
 
   @ApiPropertyOptional({ minimum: 0, maximum: 100000, default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
   @Max(100000)
-  sortOrder?: number = 0;
+  sortOrder?: number;
 
   @ApiPropertyOptional({ type: ProductSeoLocalizedDto })
   @IsOptional()
@@ -464,7 +464,7 @@ export class CreateProductDto {
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
-  published?: boolean = false;
+  published?: boolean;
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {}
@@ -532,6 +532,12 @@ export class AdminProductQueryDto extends AdminListQueryDto {
   @IsOptional()
   @IsIn(['local', 'imported'])
   type?: 'local' | 'imported';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  featured?: any;
 
   @ApiPropertyOptional()
   @IsOptional()

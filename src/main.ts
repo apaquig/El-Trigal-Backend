@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { HttpStatus, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -45,6 +45,16 @@ async function bootstrap(): Promise<void> {
       callback(new Error('CORS origin denied'), false);
     },
     credentials: true,
+  });
+
+  app.use((req: any, res: any, next: () => void) => {
+    const logger = new Logger('HTTP');
+    const { method, originalUrl } = req;
+    res.on('finish', () => {
+      const { statusCode } = res;
+      logger.log(`${method} ${originalUrl} ${statusCode}`);
+    });
+    next();
   });
 
   app.setGlobalPrefix('api/v1', {

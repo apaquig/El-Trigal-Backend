@@ -6,6 +6,7 @@ import { Product, ProductSchema } from './schemas/product.schema';
 import {
   AdminCategoriesController,
   AdminProductsController,
+  AdminDashboardController,
   PublicCategoriesController,
   PublicProductsController,
 } from './catalog.controller';
@@ -25,6 +26,7 @@ import { TranslationService } from './translation.service';
     PublicProductsController,
     AdminCategoriesController,
     AdminProductsController,
+    AdminDashboardController,
   ],
   providers: [CategoryService, ProductService, TranslationService],
   exports: [CategoryService, ProductService, TranslationService, MongooseModule],

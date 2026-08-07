@@ -275,3 +275,17 @@ export class AdminProductsController {
     return this.productService.duplicate(id, user);
   }
 }
+
+@ApiTags('dashboard')
+@Controller('admin/dashboard')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class AdminDashboardController {
+  constructor(private readonly productService: ProductService) {}
+
+  @Get()
+  @ApiOkResponse({ description: 'Estadisticas del panel de administracion.' })
+  getStats() {
+    return this.productService.getDashboardStats();
+  }
+}

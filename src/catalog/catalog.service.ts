@@ -428,7 +428,6 @@ export class ProductService implements OnModuleInit {
             options: 1,
             compareAtPriceCents: 1,
             preparation: 1,
-            featured: 1,
             bestSeller: 1,
             newProduct: 1,
             shortDescription: 1,
@@ -656,6 +655,14 @@ export class ProductService implements OnModuleInit {
 
     if (query.mainCategoryId) {
       filter.categoryIds = new Types.ObjectId(query.mainCategoryId);
+    }
+
+    if (query.featured !== undefined) {
+      if (query.featured === true) {
+        filter.featured = true;
+      } else {
+        filter.featured = { $ne: true };
+      }
     }
 
     const [items, totalItems] = await Promise.all([
@@ -1082,6 +1089,7 @@ export class ProductService implements OnModuleInit {
       dietaryTags: prod.dietaryTags || [],
       availability: prod.availability || { status: 'always' },
       published: prod.published || false,
+      featured: prod.featured || false,
       primaryCategory: (() => {
         const catDoc = categoryMap?.get(prod.primaryCategoryId?.toString() || '');
         return catDoc ? {
@@ -1243,5 +1251,60 @@ export class ProductService implements OnModuleInit {
       }
       product.slug.en = slugEn;
     }
+  }
+
+  async getDashboardStats() {
+    const [
+      publishedCount,
+      draftCount,
+      archivedCount,
+      outOfStockCount,
+      noImageCount,
+      noTranslationCount,
+      incompleteSeoCount,
+    ] = await Promise.all([
+      this.productModel.countDocuments({ published: true, status: { $ne: 'archived' } }).exec(),
+      this.productModel.countDocuments({ published: false, status: { $ne: 'archived' } }).exec(),
+      this.productModel.countDocuments({ status: 'archived' }).exec(),
+      this.productModel.countDocuments({ 'availability.status': 'out_of_stock', status: { $ne: 'archived' } }).exec(),
+      this.productModel.countDocuments({
+        $or: [{ media: { $size: 0 } }, { media: { $exists: false } }],
+        status: { $ne: 'archived' },
+      }).exec(),
+      this.productModel.countDocuments({
+        $or: [
+          { 'translations.en.name': { $exists: false } },
+          { 'translations.en.name': '' },
+          { 'translations.en.description': { $exists: false } },
+          { 'translations.en.description': '' },
+        ],
+        status: { $ne: 'archived' },
+      }).exec(),
+      this.productModel.countDocuments({
+        $or: [
+          { 'seo.es.metaTitle': { $exists: false } },
+          { 'seo.es.metaTitle': '' },
+          { 'seo.es.metaDescription': { $exists: false } },
+          { 'seo.es.metaDescription': '' },
+          { 'seo.en.metaTitle': { $exists: false } },
+          { 'seo.en.metaTitle': '' },
+          { 'seo.en.metaDescription': { $exists: false } },
+          { 'seo.en.metaDescription': '' },
+        ],
+        status: { $ne: 'archived' },
+      }).exec(),
+    ]);
+
+    return {
+      publishedCount,
+      draftCount,
+      archivedCount,
+      outOfStockCount,
+      noImageCount,
+      noTranslationCount,
+      incompleteSeoCount,
+      pendingCakeRequests: 0,
+      recentActivity: [],
+    };
   }
 }
