@@ -30,15 +30,41 @@ import {
 } from './dto/product.dto';
 import { Category, CategoryDocument } from './schemas/category.schema';
 import { Product, ProductDocument } from './schemas/product.schema';
-import { TranslationService, sanitizeEnglishText } from './translation.service';
+import { TranslationService, sanitizeEnglishText, slugify } from './translation.service';
 
 @Injectable()
-export class CategoryService {
+export class CategoryService implements OnModuleInit {
   constructor(
     @InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     private readonly mediaService: MediaService,
+    private readonly translationService: TranslationService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    try {
+      const categories = await this.categoryModel.find({}).exec();
+      for (const cat of categories) {
+        const nameEs = cat.name?.es || '';
+        let nameEn = cat.name?.en || '';
+        if (!nameEn || nameEn === nameEs) {
+          nameEn = await this.translationService.translateToEnglish(nameEs);
+          if (!cat.name) cat.name = { es: nameEs, en: nameEn };
+          else cat.name.en = nameEn;
+        }
+        const slugEs = slugify(cat.slug?.es || nameEs);
+        const slugEn = slugify(nameEn);
+        if (!cat.slug || cat.slug.es !== slugEs || cat.slug.en !== slugEn) {
+          cat.slug = { es: slugEs, en: slugEn || slugEs };
+          cat.markModified('name');
+          cat.markModified('slug');
+          await cat.save();
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   async listPublic(query: PublicCategoryQueryDto) {
     const filter: Record<string, unknown> = { status: Status.PUBLISHED };
@@ -276,8 +302,20 @@ export class CategoryService {
   async create(dto: CreateCategoryDto): Promise<Category> {
     await this.assertParentAllowed(null, dto.parentId ?? null);
     const image = await this.resolveCategoryImage(dto.imageId);
+
+    const nameEs = dto.name?.es || '';
+    let nameEn = dto.name?.en || '';
+    if (!nameEn || nameEn === nameEs) {
+      nameEn = await this.translationService.translateToEnglish(nameEs);
+    }
+    const slugEs = slugify(dto.slug?.es || nameEs);
+    let slugEn = (dto.slug?.en && dto.slug.en !== dto.slug.es) ? slugify(dto.slug.en) : slugify(nameEn);
+    if (!slugEn) slugEn = slugEs;
+
     const category = new this.categoryModel({
       ...dto,
+      name: { es: nameEs, en: nameEn },
+      slug: { es: slugEs, en: slugEn },
       parentId: dto.parentId ?? null,
       image,
       seo: dto.seo ?? {},
@@ -305,9 +343,21 @@ export class CategoryService {
       existing.image = await this.resolveCategoryImage(dto.imageId);
     }
 
+    const nameEs = dto.name?.es ?? existing.name?.es ?? '';
+    let nameEn = dto.name?.en ?? existing.name?.en ?? '';
+    if (!nameEn || nameEn === nameEs) {
+      nameEn = await this.translationService.translateToEnglish(nameEs);
+    }
+
+    const rawSlugEs = dto.slug?.es ?? existing.slug?.es ?? nameEs;
+    const rawSlugEn = dto.slug?.en ?? existing.slug?.en;
+    const slugEs = slugify(rawSlugEs);
+    let slugEn = (rawSlugEn && rawSlugEn !== rawSlugEs && rawSlugEn !== existing.slug?.es) ? slugify(rawSlugEn) : slugify(nameEn);
+    if (!slugEn) slugEn = slugEs;
+
     Object.assign(existing, {
-      ...(dto.name && { name: dto.name }),
-      ...(dto.slug && { slug: dto.slug }),
+      name: { es: nameEs, en: nameEn },
+      slug: { es: slugEs, en: slugEn },
       ...(dto.description !== undefined && { description: dto.description }),
       ...(dto.shortDescription !== undefined && { shortDescription: dto.shortDescription }),
       ...(dto.status && { status: dto.status }),
@@ -1170,9 +1220,9 @@ export class ProductService implements OnModuleInit {
     product.translations.en.description = product.description.en;
 
     // Generate English slug
-    if (!product.slug.en || product.slug.en === product.slug.es) {
-      const slugBaseEn = product.name.en.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      product.slug.en = slugBaseEn || product.slug.es;
+    const esNameSlug = slugify(nameEs);
+    if (!product.slug.en || product.slug.en === product.slug.es || product.slug.en === esNameSlug) {
+      product.slug.en = slugify(product.name.en) || product.slug.es;
     }
 
     // Auto-correct image alt texts using the translated product names if they are invalid (e.g. raw filenames)

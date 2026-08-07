@@ -31,7 +31,19 @@ export function sanitizeEnglishText(text: string): string {
     .replace(/Ó/g, 'O')
     .replace(/Ú/g, 'U')
     .replace(/ü/g, 'u')
-    .replace(/Ü/g, 'U');
+}
+
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
 }
 
 @Injectable()

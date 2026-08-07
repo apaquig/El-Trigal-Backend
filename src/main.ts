@@ -33,11 +33,18 @@ async function bootstrap(): Promise<void> {
     'https://www.eltrigalpancalientito.com',
     'https://eltrigalbakery.com',
     'https://www.eltrigalbakery.com',
+    'http://localhost:4321',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:4200',
+    'http://127.0.0.1:4321',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
   ];
 
   app.enableCors({
     origin(origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
         callback(null, true);
         return;
       }
