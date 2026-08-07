@@ -34,7 +34,7 @@ export class NoSqlInjectionPipe implements PipeTransform {
 
     if (value && typeof value === 'object') {
       return Object.entries(value as Record<string, unknown>).some(([key, nested]) => {
-        return key.startsWith('$') || key.includes('.') || this.containsMongoOperator(nested);
+        return key.startsWith('$') || this.containsMongoOperator(nested);
       });
     }
 
