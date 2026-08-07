@@ -31,6 +31,8 @@ async function bootstrap(): Promise<void> {
     ...config.get('adminOrigins', { infer: true }),
     'https://eltrigalpancalientito.com',
     'https://www.eltrigalpancalientito.com',
+    'https://eltrigalbakery.com',
+    'https://www.eltrigalbakery.com',
   ];
 
   app.enableCors({
